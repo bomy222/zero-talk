@@ -1,660 +1,786 @@
 import tkinter as tk
-
-# -------------------------------
-# 메인 화면 연결 임포트
-# -------------------------------
-
-# -------------------------------
-# 로그인 성공 후 메인 화면 진입 함수
-# -------------------------------
-def go_to_main_screen(root, username):
-    # 현재 창(root) 파괴
-    root.destroy()
-
-    # 새로운 메인 창 생성
-    main_root = tk.Tk()
-    app = MainScreen(main_root, username)
-    main_root.mainloop()
-
 from tkinter import messagebox
-import random
+import json
+import os
+import socketio
+import time
 
-class MainScreen(tk.Frame):
+sio = socketio.Client()
+sio.connect('http://localhost:5000')  # 서버 주소 수정 가능
+
+class MainScreen:
     def __init__(self, master, username):
-        super().__init__(master)
         self.master = master
         self.username = username
+        self.active_friend = None
         self.friends = []
-        self.friend_buttons = []
-        self.pack(fill="both", expand=True)
-        self.create_widgets()
-        self.after(5000, self.update_friend_status)  # 5초마다 상태 업데이트
+        self.friend_buttons = {}
+        self.chat_logs = {}  # 친구별 채팅 기록
 
-    def create_widgets(self):
-        # 상단 타이틀
-        title = tk.Label(self, text=f"ZeroTalk에 오신 것을 환영합니다, {self.username}님!", font=("Helvetica", 18))
-        title.pack(pady=20)
+        self.master.title(f"{username}님 ZeroTalk에 오신 것을 환영합니다")
+        self.master.geometry("1000x600")
 
-        # 친구 목록 프레임
-        list_frame = tk.Frame(self)
-        list_frame.pack(pady=10)
+        self.create_frames()
+        self.create_friend_list_area()
+        self.create_chat_area()
+        self.load_friends()
 
-        self.canvas = tk.Canvas(list_frame, width=300, height=400)
-        scrollbar = tk.Scrollbar(list_frame, orient="vertical", command=self.canvas.yview)
-        self.scrollable_frame = tk.Frame(self.canvas)
+    def create_frames(self):
+        self.left_frame = tk.Frame(self.master, width=250, bg="#202020")
+        self.left_frame.pack(side="left", fill="y")
 
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(
-                scrollregion=self.canvas.bbox("all")
-            )
+        self.right_frame = tk.Frame(self.master, bg="#1e1e1e")
+        self.right_frame.pack(side="right", fill="both", expand=True)
+
+    def create_friend_list_area(self):
+        title = tk.Label(self.left_frame, text="친구 목록", bg="#202020", fg="white", font=("Helvetica", 14))
+        title.pack(pady=10)
+
+        self.friend_list_frame = tk.Frame(self.left_frame, bg="#202020")
+        self.friend_list_frame.pack(fill="both", expand=True)
+
+        self.friend_entry = tk.Entry(self.left_frame)
+        self.friend_entry.pack(padx=10, pady=5)
+
+        btn_add = tk.Button(self.left_frame, text="친구 추가", command=self.add_friend)
+        btn_add.pack(padx=10, pady=5)
+
+        btn_del = tk.Button(self.left_frame, text="친구 삭제", command=self.delete_selected_friend)
+        btn_del.pack(padx=10, pady=5)
+
+    def create_chat_area(self):
+        self.chat_display = tk.Text(
+            self.right_frame,
+            bg="#1e1e1e",
+            fg="white",
+            font=("Helvetica", 12),
+            state=tk.DISABLED,
+            wrap="word"
         )
+        self.chat_display.pack(fill="both", expand=True, padx=10, pady=(10, 5))
 
-        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        self.canvas.configure(yscrollcommand=scrollbar.set)
+        self.chat_input_frame = tk.Frame(self.right_frame, bg="#1e1e1e")
+        self.chat_input_frame.pack(fill="x", padx=10, pady=(0, 10))
 
-        self.canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+        self.chat_entry = tk.Entry(self.chat_input_frame, font=("Helvetica", 12))
+        self.chat_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
 
-        # 친구 추가 버튼
-        add_friend_button = tk.Button(self, text="친구 추가", command=self.add_friend)
-        add_friend_button.pack(pady=10)
+        send_btn = tk.Button(self.chat_input_frame, text="전송", command=self.send_message)
+        send_btn.pack(side="right")
+
+    def send_message(self):
+        message = self.chat_entry.get().strip()
+        if not message or not self.active_friend:
+            return
+
+        data = {
+            "sender": self.username,
+            "receiver": self.active_friend,
+            "message": message,
+            "timestamp": time.strftime("%H:%M:%S")
+        }
+
+        sio.emit("send_message", data)
+        self.append_chat(self.username, message)
+        self.chat_entry.delete(0, tk.END)
+
+    def append_chat(self, sender, message):
+        self.chat_display.config(state=tk.NORMAL)
+        self.chat_display.insert(tk.END, f"{sender}: {message}\n")
+        self.chat_display.config(state=tk.DISABLED)
+        self.chat_display.see(tk.END)
+
+@sio.on('receive_message')
+def on_receive(data):
+    # 이 부분은 실시간 수신처리
+    app = MainScreen.active_instance
+    if app.active_friend == data["sender"]:
+        app.append_chat(data["sender"], data["message"])
+
+    # SocketIO 실시간 채팅 클라이언트
+import socketio
+
+sio = socketio.Client()
+
+try:
+    sio.connect('http://localhost:5000')
+except Exception as e:
+    print("서버 연결 실패:", e)
+
+@sio.on('receive_message')
+def on_receive(data):
+    message = f"{data['user']}: {data['message']}"
+    try:
+        self.chat_display.config(state=tk.NORMAL)
+        self.chat_display.insert(tk.END, message + "\n")
+        self.chat_display.config(state=tk.DISABLED)
+        self.chat_display.see(tk.END)
+    except:
+        pass  # 아직 chat_display가 없을 때 대비
+
+class MainScreen:
+    active_instance = None  # SocketIO에서 접근 위해 클래스 변수로 등록
+
+    def __init__(self, root, username):
+        MainScreen.active_instance = self  # socketio 핸들링을 위해
+        self.root = root
+        self.username = username
+        self.active_friend = None
+
+        self.root.title(f"{username}님 - ZeroTalk")
+        self.root.geometry("800x500")
+
+        self.left_frame = tk.Frame(self.root, bg='#2c2f33', width=200)
+        self.left_frame.pack(side="left", fill="y")
+
+        self.right_frame = tk.Frame(self.root, bg='#23272a')
+        self.right_frame.pack(side="right", expand=True, fill="both")
+
+        self.friends_listbox = tk.Listbox(
+            self.left_frame, bg="#2c2f33", fg="white",
+            selectbackground="skyblue", font=("Helvetica", 12)
+        )
+        self.friends_listbox.pack(pady=10, padx=10, fill="y", expand=True)
+        self.friends_listbox.bind("<<ListboxSelect>>", self.select_friend)
+
+        add_btn = tk.Button(self.left_frame, text="친구 추가", command=self.add_friend)
+        add_btn.pack(pady=(0, 5))
+
+        del_btn = tk.Button(self.left_frame, text="친구 삭제", command=self.delete_friend)
+        del_btn.pack()
+
+        self.create_chat_area()
+        self.load_friends()
+    
+    def send_message(self):
+    message = self.chat_entry.get()
+    if message.strip() == "":
+        return
+
+    # 채팅창에 내 메시지 표시
+    self.chat_display.config(state=tk.NORMAL)
+    self.chat_display.insert(tk.END, f"나: {message}\n")
+    self.chat_display.config(state=tk.DISABLED)
+    self.chat_display.see(tk.END)
+
+    # 서버로 메시지 전송
+    try:
+        sio.emit('send_message', {
+            'user': self.username,
+            'message': message
+        })
+    except Exception as e:
+        print("서버 전송 오류:", e)
+
+    self.chat_entry.delete(0, tk.END)
+    def load_friends(self):
+        self.friends = []
+        if os.path.exists("friends.json"):
+            with open("friends.json", "r", encoding="utf-8") as f:
+                try:
+                    all_data = json.load(f)
+                    self.friends = all_data.get(self.username, [])
+                except json.JSONDecodeError:
+                    self.friends = []
+
+        self.refresh_friend_list()
+
+    def save_friends(self):
+        all_data = {}
+        if os.path.exists("friends.json"):
+            with open("friends.json", "r", encoding="utf-8") as f:
+                try:
+                    all_data = json.load(f)
+                except json.JSONDecodeError:
+                    all_data = {}
+
+        all_data[self.username] = self.friends
+
+        with open("friends.json", "w", encoding="utf-8") as f:
+            json.dump(all_data, f, ensure_ascii=False, indent=4)
+
+    def refresh_friend_list(self):
+        self.friends_listbox.delete(0, tk.END)
+        for friend in self.friends:
+            self.friends_listbox.insert(tk.END, friend)
 
     def add_friend(self):
-        friend_name = f"친구{len(self.friends)+1}"
-        friend_info = {"name": friend_name, "status": "online"}
-        self.friends.append(friend_info)
+        new_friend = tk.simpledialog.askstring("친구 추가", "추가할 친구 이름:")
+        if new_friend and new_friend not in self.friends:
+            self.friends.append(new_friend)
+            self.save_friends()
+            self.refresh_friend_list()
 
-        button = tk.Button(self.scrollable_frame, text=f"{friend_name} (online)", fg="lime", width=30)
-        button.pack(pady=5)
-        self.friend_buttons.append(button)
+    def delete_friend(self):
+        selected = self.friends_listbox.curselection()
+        if selected:
+            friend = self.friends_listbox.get(selected)
+            if friend in self.friends:
+                self.friends.remove(friend)
+                self.save_friends()
+                self.refresh_friend_list()
 
-    def update_friend_status(self):
-        for i, friend in enumerate(self.friends):
-            new_status = random.choice(["online", "offline"])
-            friend["status"] = new_status
+    def select_friend(self, event):
+        selected = self.friends_listbox.curselection()
+        if selected:
+            self.active_friend = self.friends_listbox.get(selected)
+            self.chat_display.config(state=tk.NORMAL)
+            self.chat_display.insert(tk.END, f"--- {self.active_friend}님과의 대화 시작 ---\n")
+            self.chat_display.config(state=tk.DISABLED)
 
-            button = self.friend_buttons[i]
-            status_color = "lime" if new_status == "online" else "gray"
-            button.config(text=f"{friend['name']} ({new_status})", fg=status_color)
-
-        self.after(5000, self.update_friend_status)  # 5초마다 반복
-
-    def __init__(self, master, username):
-        super().__init__(master)
-        self.master = master
-        self.username = username
-        self.pack(fill="both", expand=True)
-        self.create_widgets()
-
-    def create_widgets(self):
-        # 메인 타이틀
-        title = tk.Label(self, text=f"ZeroTalk - 환영합니다, {self.username}님!", font=("Helvetica", 20, "bold"))
-        title.pack(pady=30)
-
-        # 버튼 프레임
-        button_frame = tk.Frame(self)
-        button_frame.pack(pady=20)
-
-        # 채팅방 입장 버튼
-        chat_button = tk.Button(button_frame, text="채팅방 입장", width=20, height=2, command=self.enter_chat_room)
-        chat_button.grid(row=0, column=0, padx=10, pady=10)
-
-        # 친구 목록 보기 버튼
-        friends_button = tk.Button(button_frame, text="친구 목록 보기", width=20, height=2, command=self.show_friends)
-        friends_button.grid(row=0, column=1, padx=10, pady=10)
-
-        # 설정 버튼
-        settings_button = tk.Button(button_frame, text="설정", width=20, height=2, command=self.open_settings)
-        settings_button.grid(row=1, column=0, padx=10, pady=10)
-
-        # 로그아웃 버튼
-        logout_button = tk.Button(button_frame, text="로그아웃", width=20, height=2, command=self.logout)
-        logout_button.grid(row=1, column=1, padx=10, pady=10)
-
-    def enter_chat_room(self):
-        messagebox.showinfo("알림", "채팅방 입장 기능은 곧 추가됩니다!")
-
-    def show_friends(self):
-        messagebox.showinfo("알림", "친구 목록 기능은 곧 추가됩니다!")
-
-    def open_settings(self):
-        messagebox.showinfo("알림", "설정 기능은 곧 추가됩니다!")
-
-    def logout(self):
-        confirm = messagebox.askyesno("로그아웃", "로그아웃 하시겠습니까?")
-        if confirm:
-            self.master.destroy()
-
-    def __init__(self, master):
-        self.master = master
-        self.master.title("ZeroTalk 메인 화면")
-        self.master.geometry("900x600")
-        self.master.configure(bg='black')  # 전체 배경 검정색
-
-        # 메인 프레임 생성 (전체를 감싸는 기본 틀)
-        self.main_frame = tk.Frame(self.master, bg='black')
-        self.main_frame.pack(fill='both', expand=True)
-
-        # 왼쪽 친구 리스트 영역 만들기
-        self.create_friend_list()
-
-        # 오른쪽 채팅창 영역 만들기
-        self.create_chat_area()
-
-    def create_friend_list(self):
-        """
-        친구 리스트를 만드는 함수
-        왼쪽에 위치하고, 스크롤 가능하게 구성한다.
-        """
-        # 왼쪽 프레임 (친구 리스트 감싸는 부분)
-        self.left_frame = tk.Frame(self.main_frame, bg='#1e1e1e', width=300)
-        self.left_frame.pack(side='left', fill='y')
-
-        # 친구 리스트 제목
-        title = tk.Label(self.left_frame, text="친구 목록", bg='#1e1e1e', fg='white', font=("Helvetica", 16))
-        title.pack(pady=10)
-
-        # 친구 리스트를 위한 캔버스 생성
-        self.friend_canvas = tk.Canvas(self.left_frame, bg='#2e2e2e', highlightthickness=0)
-        self.friend_canvas.pack(side='left', fill='both', expand=True)
-
-        # 스크롤바 생성
-        self.friend_scrollbar = ttk.Scrollbar(self.left_frame, orient='vertical', command=self.friend_canvas.yview)
-        self.friend_scrollbar.pack(side='right', fill='y')
-
-        # 캔버스와 스크롤바 연결
-        self.friend_canvas.configure(yscrollcommand=self.friend_scrollbar.set)
-
-        # 캔버스 안에 실제 프레임을 삽입 (친구 버튼들 들어갈 곳)
-        self.friend_list_frame = tk.Frame(self.friend_canvas, bg='#2e2e2e')
-        self.friend_canvas.create_window((0,0), window=self.friend_list_frame, anchor='nw')
-
-        # 사이즈 변화 감지해서 스크롤 적용
-        self.friend_list_frame.bind(
-            "<Configure>",
-            lambda e: self.friend_canvas.configure(
-                scrollregion=self.friend_canvas.bbox("all")
-            )
-        )
-
-        # 임시 친구 목록 추가 (나중에 서버 데이터로 대체 예정)
-        self.add_dummy_friends()
-
-    def add_dummy_friends(self):
-        """
-        임시로 20명의 친구 추가하는 함수
-        나중에 서버에서 친구 목록 받아오게 수정할 예정
-        """
-        for i in range(20):
-            friend_name = f"친구 {i+1}"
-            friend_button = tk.Button(
-                self.friend_list_frame,
-                text=friend_name,
-                bg='#3e3e3e',
-                fg='white',
-                relief='flat',
-                anchor='w',
-                padx=10,
-                pady=5,
-                command=lambda name=friend_name: self.open_chat_with(name)
-            )
-            friend_button.pack(fill='x', pady=2)
-    
     def create_chat_area(self):
-        """
-        채팅창을 만드는 함수
-        오른쪽 영역을 구성한다.
-        """
-        # 오른쪽 프레임 (채팅창 전체 영역)
-        self.right_frame = tk.Frame(self.main_frame, bg='#121212')
-        self.right_frame.pack(side='left', fill='both', expand=True)
-
-        # 채팅 내용 표시하는 리스트박스
-        self.chat_listbox = tk.Listbox(
-            self.right_frame,
-            bg='#121212',
-            fg='white',
-            font=("Helvetica", 12),
-            selectbackground='#333333',
-            activestyle='none'
-        )
-        self.chat_listbox.pack(fill='both', expand=True, padx=10, pady=10)
-
-        # 채팅 입력 프레임 (하단)
-        self.input_frame = tk.Frame(self.right_frame, bg='#1e1e1e')
-        self.input_frame.pack(fill='x', padx=10, pady=5)
+        # 채팅 출력 창
+        self.chat_display = tk.Text(self.right_frame, bg='#1e1e1e', fg='white',
+                                    font=("Helvetica", 12), wrap="word")
+        self.chat_display.pack(padx=10, pady=10, fill="both", expand=True)
+        self.chat_display.config(state=tk.DISABLED)
 
         # 채팅 입력창
-        self.chat_entry = tk.Entry(
-            self.input_frame,
-            bg='#2e2e2e',
-            fg='white',
-            font=("Helvetica", 12),
-            relief='flat'
-        )
-        self.chat_entry.pack(side='left', fill='x', expand=True, padx=(0,5))
+        self.input_entry = tk.Entry(self.right_frame, font=("Helvetica", 12))
+        self.input_entry.pack(fill='x', padx=10, pady=(0, 5))
+        self.input_entry.bind("<Return>", self.send_message)
 
         # 전송 버튼
-        self.send_button = tk.Button(
-            self.input_frame,
-            text="전송",
-            bg='#4e4e4e',
-            fg='white',
-            relief='flat',
-            command=self.send_message
-        )
-        self.send_button.pack(side='right')
+        send_btn = tk.Button(self.right_frame, text="전송", command=self.send_message)
+        send_btn.pack(pady=(0, 10))
 
-    def open_chat_with(self, friend_name):
-        """
-        친구를 클릭했을 때 호출되는 함수
-        채팅방 제목 변경 + 채팅창 초기화
-        """
-        self.chat_listbox.delete(0, tk.END)
-        self.chat_listbox.insert(tk.END, f"[{friend_name}]님과의 대화가 시작되었습니다.")
+    def send_message(self, event=None):
+        message = self.input_entry.get().strip()
+        if not message or not self.active_friend:
+            return
 
-    def send_message(self):
-        """
-        채팅 메시지 전송하는 함수
-        입력창에 입력한 텍스트를 리스트박스에 추가한다.
-        """
-        message = self.chat_entry.get()
-        if message.strip() != "":
-            self.chat_listbox.insert(tk.END, f"나: {message}")
-            self.chat_entry.delete(0, tk.END)
+        full_msg = f"{self.username}: {message}\n"
+        self.append_chat(full_msg)
+        self.save_chat(self.active_friend, full_msg)
+        self.input_entry.delete(0, tk.END)
 
-    def __init__(self, master):
-        self.master = master
-        self.master.title("ZeroTalk 메인 화면")
-        self.master.geometry("1000x650")
-        self.master.configure(bg='black')
+    def append_chat(self, message):
+        self.chat_display.config(state=tk.NORMAL)
+        self.chat_display.insert(tk.END, message)
+        self.chat_display.config(state=tk.DISABLED)
+        self.chat_display.see(tk.END)
 
-        # 메인 프레임
-        self.main_frame = tk.Frame(self.master, bg='black')
-        self.main_frame.pack(fill='both', expand=True)
+    def save_chat(self, friend_name, message):
+        file_path = f"chat_{self.username}_{friend_name}.json"
+        chats = []
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as f:
+                try:
+                    chats = json.load(f)
+                except json.JSONDecodeError:
+                    chats = []
 
-        # 왼쪽 친구 리스트
-        self.create_friend_list()
+        chats.append({"user": self.username, "message": message.strip()})
 
-        # 오른쪽 채팅창
-        self.create_chat_area()
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(chats, f, ensure_ascii=False, indent=4)
 
-    def create_friend_list(self):
-        """
-        친구 리스트 + 상태표시를 위한 프레임
-        """
-        self.left_frame = tk.Frame(self.main_frame, bg='#1e1e1e', width=300)
-        self.left_frame.pack(side='left', fill='y')
+    def load_chat(self, friend_name):
+        file_path = f"chat_{self.username}_{friend_name}.json"
+        self.chat_display.config(state=tk.NORMAL)
+        self.chat_display.delete(1.0, tk.END)
 
-        title = tk.Label(self.left_frame, text="친구 목록", bg='#1e1e1e', fg='white', font=("Helvetica", 16))
-        title.pack(pady=10)
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as f:
+                try:
+                    chats = json.load(f)
+                    for chat in chats:
+                        msg = f"{chat['user']}: {chat['message']}\n"
+                        self.chat_display.insert(tk.END, msg)
+                except json.JSONDecodeError:
+                    self.chat_display.insert(tk.END, "(이전 채팅 불러오기 실패)\n")
 
-        # 캔버스 + 스크롤
-        self.friend_canvas = tk.Canvas(self.left_frame, bg='#2e2e2e', highlightthickness=0)
-        self.friend_canvas.pack(side='left', fill='both', expand=True)
+        self.chat_display.config(state=tk.DISABLED)
 
-        self.friend_scrollbar = ttk.Scrollbar(self.left_frame, orient='vertical', command=self.friend_canvas.yview)
-        self.friend_scrollbar.pack(side='right', fill='y')
+    def select_friend(self, event):
+        selected = self.friends_listbox.curselection()
+        if selected:
+            self.active_friend = self.friends_listbox.get(selected)
+            self.load_chat(self.active_friend)
 
-        self.friend_canvas.configure(yscrollcommand=self.friend_scrollbar.set)
+    import tkinter as tk from tkinter import messagebox import json import os import time
 
-        self.friend_list_frame = tk.Frame(self.friend_canvas, bg='#2e2e2e')
-        self.friend_canvas.create_window((0,0), window=self.friend_list_frame, anchor='nw')
+class MainScreen: def init(self, root, username): self.root = root self.username = username self.active_friend = None
 
-        self.friend_list_frame.bind(
-            "<Configure>",
-            lambda e: self.friend_canvas.configure(
-                scrollregion=self.friend_canvas.bbox("all")
-            )
-        )
-    def create_friend_list(self):
-        """친구 리스트 생성하는 함수"""
+self.root.title(f"{username}님 - ZeroTalk")
+    self.root.geometry("800x500")
+    self.root.configure(bg='#1e1e1e')
 
-        self.friend_list_frame = tk.Frame(self)
-        self.friend_list_frame.pack(side="left", fill="y", padx=10, pady=10)
+    self.left_frame = tk.Frame(self.root, width=200, bg='#252526')
+    self.left_frame.pack(side="left", fill="y")
 
-        # 샘플 친구 목록
-        self.friends = [
-            {"name": "Alice", "status": "online"},
-            {"name": "Bob", "status": "offline"},
-            {"name": "Charlie", "status": "online"},
-            {"name": "David", "status": "offline"},
-            {"name": "Eve", "status": "online"},
-        ]
+    self.right_frame = tk.Frame(self.root, bg='#1e1e1e')
+    self.right_frame.pack(side="right", expand=True, fill="both")
 
-        self.friend_buttons = []
+    self.friends_label = tk.Label(self.left_frame, text="친구 목록", fg='white', bg='#252526', font=("Arial", 12))
+    self.friends_label.pack(pady=10)
 
-        for idx, friend in enumerate(self.friends):
-            status_color = "lime" if friend["status"] == "online" else "gray"
-            button = tk.Button(
-                self.friend_list_frame,
-                text=friend["name"],
-                fg=status_color,
-                command=lambda f=friend: self.open_chat_with(f)
-            )
-            button.pack(pady=5, fill="x")
-            self.friend_buttons.append(button)
+    self.friends_listbox = tk.Listbox(self.left_frame, bg='#1e1e1e', fg='white', selectbackground='#007acc')
+    self.friends_listbox.pack(fill="both", expand=True, padx=10, pady=5)
+    self.friends_listbox.bind("<<ListboxSelect>>", self.select_friend)
 
-    def open_chat_with(self, friend):
-        """친구 클릭 시 채팅창으로 넘어가는 함수"""
-        messagebox.showinfo("채팅 시작", f"{friend['name']}님과 채팅을 시작합니다.")
+    self.friend_entry = tk.Entry(self.left_frame)
+    self.friend_entry.pack(pady=5, padx=10, fill="x")
 
-        # 임시 친구 데이터
-        self.friends = [
-            {"name": "친구 1", "status": "online"},
-            {"name": "친구 2", "status": "offline"},
-            {"name": "친구 3", "status": "online"},
-            {"name": "친구 4", "status": "offline"},
-            {"name": "친구 5", "status": "online"},
-            {"name": "친구 6", "status": "offline"},
-            {"name": "친구 7", "status": "online"},
-            {"name": "친구 8", "status": "offline"},
-            {"name": "친구 9", "status": "online"},
-            {"name": "친구 10", "status": "offline"},
-        ]
+    self.add_button = tk.Button(self.left_frame, text="+ 친구 추가", command=self.add_friend)
+    self.add_button.pack(pady=5, padx=10, fill="x")
 
-        # 친구 리스트 출력
-        self.friend_buttons = []
-        self.add_friends()
+    self.delete_button = tk.Button(self.left_frame, text="- 삭제", command=self.delete_friend)
+    self.delete_button.pack(pady=5, padx=10, fill="x")
 
-    def add_friends(self):
-        """
-        친구 목록을 버튼으로 추가하는 함수
-        온라인은 초록색, 오프라인은 회색 표시
-        """
-        for friend in self.friends:
-            status_color = 'lime' if friend["status"] == "online" else 'gray'
-            button_frame = tk.Frame(self.friend_list_frame, bg='#2e2e2e')
-            button_frame.pack(fill='x', pady=2)
+    self.chat_display = tk.Text(self.right_frame, bg='#1e1e1e', fg='white', wrap="word",
+                                 font=("Helvetica", 12), state=tk.DISABLED)
+    self.chat_display.pack(padx=10, pady=10, fill="both", expand=True)
 
-            # 상태 점 표시
-            status_dot = tk.Label(
-                button_frame,
-                text="●",
-                fg=status_color,
-                bg='#2e2e2e',
-                font=("Helvetica", 12)
-            )
-            status_dot.pack(side='left', padx=5)
+    self.input_frame = tk.Frame(self.right_frame, bg='#2d2d30')
+    self.input_frame.pack(fill="x", padx=10, pady=5)
 
-            # 친구 버튼
-            friend_button = tk.Button(
-                button_frame,
-                text=friend["name"],
-                bg='#3e3e3e',
-                fg='white',
-                relief='flat',
-                anchor='w',
-                padx=10,
-                pady=5,
-                command=lambda name=friend["name"]: self.open_chat_with(name)
-            )
-            friend_button.pack(fill='x', expand=True)
+    self.input_entry = tk.Entry(self.input_frame, font=("Helvetica", 12))
+    self.input_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+    self.input_entry.bind("<Return>", self.send_message)
 
-            self.friend_buttons.append(friend_button)
+    self.send_button = tk.Button(self.input_frame, text="전송", command=self.send_message)
+    self.send_button.pack(side="right")
 
-    def create_chat_area(self):
-        """
-        채팅창 + 제목 표시
-        """
-        self.right_frame = tk.Frame(self.main_frame, bg='#121212')
-        self.right_frame.pack(side='left', fill='both', expand=True)
+    self.load_friends()
 
-        # 채팅 상대 이름 표시
-        self.chat_title = tk.Label(
-            self.right_frame,
-            text="채팅 상대를 선택하세요",
-            bg='#121212',
-            fg='white',
-            font=("Helvetica", 18)
-        )
-        self.chat_title.pack(pady=10)
+def add_friend(self):
+    name = self.friend_entry.get().strip()
+    if name and name not in self.friends_listbox.get(0, tk.END):
+        self.friends_listbox.insert(tk.END, name)
+        self.save_friends()
+        self.friend_entry.delete(0, tk.END)
 
-        # 채팅 내용
-        self.chat_listbox = tk.Listbox(
-            self.right_frame,
-            bg='#121212',
-            fg='white',
-            font=("Helvetica", 12),
-            selectbackground='#333333',
-            activestyle='none'
-        )
-        self.chat_listbox.pack(fill='both', expand=True, padx=10, pady=(0,10))
+def delete_friend(self):
+    selected = self.friends_listbox.curselection()
+    if selected:
+        self.friends_listbox.delete(selected)
+        self.save_friends()
+        self.chat_display.config(state=tk.NORMAL)
+        self.chat_display.delete(1.0, tk.END)
+        self.chat_display.config(state=tk.DISABLED)
+        self.active_friend = None
 
-        # 입력창
-        self.input_frame = tk.Frame(self.right_frame, bg='#1e1e1e')
-        self.input_frame.pack(fill='x', padx=10, pady=5)
+def load_friends(self):
+    path = f"friends_{self.username}.json"
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            try:
+                friends = json.load(f)
+                for friend in friends:
+                    self.friends_listbox.insert(tk.END, friend)
+            except:
+                pass
 
-        self.chat_entry = tk.Entry(
-            self.input_frame,
-            bg='#2e2e2e',
-            fg='white',
-            font=("Helvetica", 12),
-            relief='flat'
-        )
-        self.chat_entry.pack(side='left', fill='x', expand=True, padx=(0,5))
+def save_friends(self):
+    path = f"friends_{self.username}.json"
+    friends = list(self.friends_listbox.get(0, tk.END))
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(friends, f, ensure_ascii=False, indent=4)
 
-        self.send_button = tk.Button(
-            self.input_frame,
-            text="전송",
-            bg='#4e4e4e',
-            fg='white',
-            relief='flat',
-            command=self.send_message
-        )
-        self.send_button.pack(side='right')
+def send_message(self, event=None):
+    message = self.input_entry.get().strip()
+    if not message or not self.active_friend:
+        return
 
-    def open_chat_with(self, friend_name):
-        """
-        친구 클릭 시 채팅방 열기
-        """
-        self.chat_listbox.delete(0, tk.END)
-        self.chat_title.config(text=f"{friend_name}님과의 대화")
-        self.chat_listbox.insert(tk.END, f"[{friend_name}]님과 대화가 시작되었습니다.")
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    full_msg = f"{self.username} ({timestamp}): {message}\n"
+    self.append_chat(full_msg)
+    self.save_chat(self.active_friend, full_msg)
+    self.input_entry.delete(0, tk.END)
 
-    def send_message(self):
-        """
-        채팅 전송
-        """
-        message = self.chat_entry.get()
-        if message.strip() != "":
-            self.chat_listbox.insert(tk.END, f"나: {message}")
-            self.chat_entry.delete(0, tk.END)
+def append_chat(self, message):
+    self.chat_display.config(state=tk.NORMAL)
+    self.chat_display.insert(tk.END, message)
+    self.chat_display.config(state=tk.DISABLED)
+    self.chat_display.see(tk.END)
 
-    def __init__(self, master):
-        self.master = master
-        self.master.title("ZeroTalk 메인 화면")
-        self.master.geometry("1000x650")
-        self.master.configure(bg='black')
+def save_chat(self, friend_name, message):
+    file_path = f"chat_{self.username}_{friend_name}.json"
+    chats = []
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
+            try:
+                chats = json.load(f)
+            except:
+                chats = []
 
-        self.main_frame = tk.Frame(self.master, bg='black')
-        self.main_frame.pack(fill='both', expand=True)
+    chats.append({"user": self.username, "message": message.strip()})
 
-        self.create_friend_list()
-        self.create_chat_area()
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(chats, f, ensure_ascii=False, indent=4)
 
-    def create_friend_list(self):
-        self.left_frame = tk.Frame(self.main_frame, bg='#1e1e1e', width=300)
-        self.left_frame.pack(side='left', fill='y')
+def load_chat(self, friend_name):
+    file_path = f"chat_{self.username}_{friend_name}.json"
+    self.chat_display.config(state=tk.NORMAL)
+    self.chat_display.delete(1.0, tk.END)
 
-        title = tk.Label(self.left_frame, text="친구 목록", bg='#1e1e1e', fg='white', font=("Helvetica", 16))
-        title.pack(pady=10)
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
+            try:
+                chats = json.load(f)
+                for chat in chats:
+                    msg = f"{chat['message']}\n"
+                    self.chat_display.insert(tk.END, msg)
+            except:
+                self.chat_display.insert(tk.END, "(대화 불러오기 실패)\n")
 
-        self.friend_canvas = tk.Canvas(self.left_frame, bg='#2e2e2e', highlightthickness=0)
-        self.friend_canvas.pack(side='left', fill='both', expand=True)
+    self.chat_display.config(state=tk.DISABLED)
 
-        self.friend_scrollbar = ttk.Scrollbar(self.left_frame, orient='vertical', command=self.friend_canvas.yview)
-        self.friend_scrollbar.pack(side='right', fill='y')
+def select_friend(self, event):
+    selected = self.friends_listbox.curselection()
+    if selected:
+        self.active_friend = self.friends_listbox.get(selected)
+        self.load_chat(self.active_friend)
 
-        self.friend_canvas.configure(yscrollcommand=self.friend_scrollbar.set)
+# zerotalk_main.py
 
-        self.friend_list_frame = tk.Frame(self.friend_canvas, bg='#2e2e2e')
-        self.friend_canvas.create_window((0,0), window=self.friend_list_frame, anchor='nw')
+import tkinter as tk
+from tkinter import messagebox
+import json, os, time
 
-        self.friend_list_frame.bind(
-            "<Configure>",
-            lambda e: self.friend_canvas.configure(
-                scrollregion=self.friend_canvas.bbox("all")
-            )
-        )
+# 로그인 화면
+class LoginScreen:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("ZeroTalk 로그인")
+        self.root.geometry("300x200")
+        
+        tk.Label(root, text="아이디").pack()
+        self.id_entry = tk.Entry(root)
+        self.id_entry.pack()
 
-        self.friends = [
-            {"name": "친구 1", "status": "online"},
-            {"name": "친구 2", "status": "offline"},
-            {"name": "친구 3", "status": "online"},
-            {"name": "친구 4", "status": "offline"},
-            {"name": "친구 5", "status": "online"},
-        ]
+        tk.Label(root, text="비밀번호").pack()
+        self.pw_entry = tk.Entry(root, show="*")
+        self.pw_entry.pack()
 
-        self.friend_buttons = []
-        self.add_friends()
+        tk.Button(root, text="로그인", command=self.login).pack(pady=10)
 
-    def add_friends(self):
-        for friend in self.friends:
-            status_color = 'lime' if friend["status"] == "online" else 'gray'
-            button_frame = tk.Frame(self.friend_list_frame, bg='#2e2e2e')
-            button_frame.pack(fill='x', pady=2)
+        self.load_users()
 
-            status_dot = tk.Label(
-                button_frame,
-                text="●",
-                fg=status_color,
-                bg='#2e2e2e',
-                font=("Helvetica", 12)
-            )
-            status_dot.pack(side='left', padx=5)
+    def load_users(self):
+        if not os.path.exists("user_data.json"):
+            with open("user_data.json", "w") as f:
+                json.dump({"admin": "1234"}, f)
+        with open("user_data.json", "r") as f:
+            self.users = json.load(f)
 
-            friend_button = tk.Button(
-                button_frame,
-                text=friend["name"],
-                bg='#3e3e3e',
-                fg='white',
-                relief='flat',
-                anchor='w',
-                padx=10,
-                pady=5,
-                command=lambda name=friend["name"]: self.open_chat_with(name)
-            )
-            friend_button.pack(fill='x', expand=True)
+    def login(self):
+        uid = self.id_entry.get()
+        pw = self.pw_entry.get()
 
-            self.friend_buttons.append(friend_button)
-
-    def create_chat_area(self):
-        self.right_frame = tk.Frame(self.main_frame, bg='#121212')
-        self.right_frame.pack(side='left', fill='both', expand=True)
-
-        self.chat_title = tk.Label(
-            self.right_frame,
-            text="채팅 상대를 선택하세요",
-            bg='#121212',
-            fg='white',
-            font=("Helvetica", 18)
-        )
-        self.chat_title.pack(pady=10)
-
-        # 채팅 메시지 캔버스
-        self.chat_canvas = tk.Canvas(self.right_frame, bg='#121212', highlightthickness=0)
-        self.chat_canvas.pack(fill='both', expand=True, padx=10)
-
-        self.chat_frame = tk.Frame(self.chat_canvas, bg='#121212')
-        self.chat_canvas.create_window((0,0), window=self.chat_frame, anchor='nw')
-
-        self.chat_scrollbar = ttk.Scrollbar(self.right_frame, orient='vertical', command=self.chat_canvas.yview)
-        self.chat_scrollbar.place(relx=1.0, rely=0, relheight=0.9, anchor='ne')
-        self.chat_canvas.configure(yscrollcommand=self.chat_scrollbar.set)
-
-        self.chat_frame.bind(
-            "<Configure>",
-            lambda e: self.chat_canvas.configure(
-                scrollregion=self.chat_canvas.bbox("all")
-            )
-        )
-
-        self.input_frame = tk.Frame(self.right_frame, bg='#1e1e1e')
-        self.input_frame.pack(fill='x', padx=10, pady=5)
-
-        self.chat_entry = tk.Entry(
-            self.input_frame,
-            bg='#2e2e2e',
-            fg='white',
-            font=("Helvetica", 12),
-            relief='flat'
-        )
-        self.chat_entry.pack(side='left', fill='x', expand=True, padx=(0,5))
-
-        self.send_button = tk.Button(
-            self.input_frame,
-            text="전송",
-            bg='#4e4e4e',
-            fg='white',
-            relief='flat',
-            command=self.send_message
-        )
-        self.send_button.pack(side='right')
-
-    def open_chat_with(self, friend_name):
-        """
-        친구 클릭시
-        """
-        for widget in self.chat_frame.winfo_children():
-            widget.destroy()
-        self.chat_title.config(text=f"{friend_name}님과의 대화")
-
-        # 시작 메시지
-        self.add_message(f"{friend_name}님과 대화가 시작되었습니다.", sender="other")
-
-    def add_message(self, text, sender="me"):
-        """
-        채팅 추가
-        sender = 'me' 또는 'other'
-        """
-        if sender == "me":
-            frame = tk.Frame(self.chat_frame, bg='#121212')
-            frame.pack(anchor='e', pady=2, padx=5, fill='x')
-
-            msg = tk.Label(
-                frame,
-                text=text,
-                bg='#3e3e3e',
-                fg='white',
-                font=("Helvetica", 12),
-                padx=10,
-                pady=5,
-                wraplength=300,
-                justify='right'
-            )
-            msg.pack(anchor='e', padx=10)
+        if uid in self.users and self.users[uid] == pw:
+            self.root.destroy()
+            root = tk.Tk()
+            MainScreen(root, uid)
+            root.mainloop()
         else:
-            frame = tk.Frame(self.chat_frame, bg='#121212')
-            frame.pack(anchor='w', pady=2, padx=5, fill='x')
+            messagebox.showerror("실패", "ID 또는 PW 오류")
+            self.save_log("실패", uid)
 
-            msg = tk.Label(
-                frame,
-                text=text,
-                bg='#1e1e1e',
-                fg='white',
-                font=("Helvetica", 12),
-                padx=10,
-                pady=5,
-                wraplength=300,
-                justify='left'
-            )
-            msg.pack(anchor='w', padx=10)
+    def save_log(self, status, uid):
+        log = {
+            "status": status,
+            "id": uid,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        path = "zerotalk_logs.json"
+        logs = []
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                try:
+                    logs = json.load(f)
+                except:
+                    logs = []
+        logs.append(log)
+        with open(path, "w") as f:
+            json.dump(logs, f, ensure_ascii=False, indent=4)
 
-        self.chat_canvas.update_idletasks()
-        self.chat_canvas.yview_moveto(1.0)
 
-    def send_message(self):
-        """
-        메시지 보내기
-        """
-        message = self.chat_entry.get()
-        if message.strip() != "":
-            self.add_message(f"나: {message}", sender="me")
-            self.chat_entry.delete(0, tk.END)
+# 메인화면
+class MainScreen:
+    def __init__(self, root, my_id):
+        self.root = root
+        self.my_id = my_id
+        self.root.title(f"{my_id} - ZeroTalk")
+        self.root.geometry("700x500")
+
+        self.left_frame = tk.Frame(root, width=200, bg="#202020")
+        self.left_frame.pack(side="left", fill="y")
+
+        self.right_frame = tk.Frame(root, bg="#1e1e1e")
+        self.right_frame.pack(side="right", fill="both", expand=True)
+
+        tk.Label(self.left_frame, text="친구 목록", bg="#202020", fg="white").pack(pady=10)
+        self.friend_listbox = tk.Listbox(self.left_frame, bg="#2c2c2c", fg="white")
+        self.friend_listbox.pack(fill="y", expand=True, padx=10, pady=5)
+        self.friend_listbox.bind("<<ListboxSelect>>", self.load_chat)
+
+        self.chat_listbox = tk.Listbox(self.right_frame, bg="black", fg="white")
+        self.chat_listbox.pack(fill="both", expand=True, padx=10, pady=10)
+
+        self.input_frame = tk.Frame(self.right_frame, bg="#1e1e1e")
+        self.input_frame.pack(fill="x", padx=10, pady=5)
+
+        self.message_entry = tk.Entry(self.input_frame, font=("Arial", 12))
+        self.message_entry.pack(side="left", fill="x", expand=True, padx=(0,5))
+        self.message_entry.bind("<Return>", self.send_message)
+
+        self.send_btn = tk.Button(self.input_frame, text="전송", command=self.send_message)
+        self.send_btn.pack(side="right")
+
+        # 예시 친구들
+        self.friends = ["guest", "user1", "user2"]
+        for friend in self.friends:
+            if friend != self.my_id:
+                self.friend_listbox.insert(tk.END, friend)
+
+        self.current_chat_target = None
+
+    def get_chat_file(self, friend_id):
+        return f"chat_{self.my_id}_{friend_id}.json"
+
+    def load_chat(self, event):
+        if not self.friend_listbox.curselection():
+            return
+        index = self.friend_listbox.curselection()[0]
+        target = self.friend_listbox.get(index)
+        self.current_chat_target = target
+        self.chat_listbox.delete(0, tk.END)
+
+        path = self.get_chat_file(target)
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                messages = json.load(f)
+                for msg in messages:
+                    self.chat_listbox.insert(tk.END, f"{msg['user']}: {msg['message']}")
+
+    def send_message(self, event=None):
+        msg = self.message_entry.get().strip()
+        if not msg or not self.current_chat_target:
+            return
+
+        self.chat_listbox.insert(tk.END, f"{self.my_id}: {msg}")
+        self.message_entry.delete(0, tk.END)
+
+        path = self.get_chat_file(self.current_chat_target)
+        messages = []
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                try:
+                    messages = json.load(f)
+                except:
+                    messages = []
+        messages.append({"user": self.my_id, "message": msg})
+        with open(path, "w") as f:
+            json.dump(messages, f, ensure_ascii=False, indent=4)
+
+# 실행
+    def start_zerotalk():
+        root = tk.Tk()
+        LoginScreen(root)
+        root.mainloop()
+
 
 if __name__ == "__main__":
+    start_zerotalk()
+
+# zerotalk_main.py
+
+FRIEND_FILE = "friends.json"
+
+# 로그인 화면
+class LoginScreen:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("ZeroTalk 로그인")
+        self.root.geometry("300x200")
+        
+        tk.Label(root, text="아이디").pack()
+        self.id_entry = tk.Entry(root)
+        self.id_entry.pack()
+
+        tk.Label(root, text="비밀번호").pack()
+        self.pw_entry = tk.Entry(root, show="*")
+        self.pw_entry.pack()
+
+        tk.Button(root, text="로그인", command=self.login).pack(pady=10)
+
+        self.load_users()
+
+    def load_users(self):
+        if not os.path.exists("user_data.json"):
+            with open("user_data.json", "w") as f:
+                json.dump({"admin": "1234"}, f)
+        with open("user_data.json", "r") as f:
+            self.users = json.load(f)
+
+    def login(self):
+        uid = self.id_entry.get()
+        pw = self.pw_entry.get()
+
+        if uid in self.users and self.users[uid] == pw:
+            self.root.destroy()
+            root = tk.Tk()
+            MainScreen(root, uid)
+            root.mainloop()
+        else:
+            messagebox.showerror("실패", "ID 또는 PW 오류")
+            self.save_log("실패", uid)
+
+    def save_log(self, status, uid):
+        log = {
+            "status": status,
+            "id": uid,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        path = "zerotalk_logs.json"
+        logs = []
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                try:
+                    logs = json.load(f)
+                except:
+                    logs = []
+        logs.append(log)
+        with open(path, "w") as f:
+            json.dump(logs, f, ensure_ascii=False, indent=4)
+
+
+# 메인화면
+class MainScreen:
+    def __init__(self, root, my_id):
+        self.root = root
+        self.my_id = my_id
+        self.root.title(f"{my_id} - ZeroTalk")
+        self.root.geometry("800x550")
+
+        self.left_frame = tk.Frame(root, width=200, bg="#202020")
+        self.left_frame.pack(side="left", fill="y")
+
+        self.right_frame = tk.Frame(root, bg="#1e1e1e")
+        self.right_frame.pack(side="right", fill="both", expand=True)
+
+        tk.Label(self.left_frame, text="친구 목록", bg="#202020", fg="white").pack(pady=5)
+
+        self.friend_listbox = tk.Listbox(self.left_frame, bg="#2c2c2c", fg="white")
+        self.friend_listbox.pack(fill="y", expand=True, padx=10, pady=5)
+        self.friend_listbox.bind("<<ListboxSelect>>", self.load_chat)
+
+        tk.Button(self.left_frame, text="친구 추가", command=self.add_friend).pack(fill="x", padx=10, pady=2)
+        tk.Button(self.left_frame, text="친구 삭제", command=self.remove_friend).pack(fill="x", padx=10)
+
+        self.chat_listbox = tk.Listbox(self.right_frame, bg="black", fg="white")
+        self.chat_listbox.pack(fill="both", expand=True, padx=10, pady=10)
+
+        self.input_frame = tk.Frame(self.right_frame, bg="#1e1e1e")
+        self.input_frame.pack(fill="x", padx=10, pady=5)
+
+        self.message_entry = tk.Text(self.input_frame, height=3, font=("Arial", 12))
+        self.message_entry.pack(side="left", fill="x", expand=True, padx=(0,5))
+        self.message_entry.bind("<Return>", self.on_enter)
+
+        self.send_btn = tk.Button(self.input_frame, text="전송", command=self.send_message)
+        self.send_btn.pack(side="right")
+
+        self.load_friends()
+        self.current_chat_target = None
+
+    def get_chat_file(self, friend_id):
+        return f"chat_{self.my_id}_{friend_id}.json"
+
+    def load_friends(self):
+        self.friends = []
+        if os.path.exists(FRIEND_FILE):
+            with open(FRIEND_FILE, "r") as f:
+                all_data = json.load(f)
+                self.friends = all_data.get(self.my_id, [])
+        else:
+            with open(FRIEND_FILE, "w") as f:
+                json.dump({}, f)
+        self.refresh_friend_list()
+
+    def refresh_friend_list(self):
+        self.friend_listbox.delete(0, tk.END)
+        for friend in self.friends:
+            self.friend_listbox.insert(tk.END, friend)
+
+    def add_friend(self):
+        new = tk.simpledialog.askstring("친구 추가", "친구 아이디:")
+        if new and new not in self.friends and new != self.my_id:
+            self.friends.append(new)
+            self.save_friends()
+            self.refresh_friend_list()
+
+    def remove_friend(self):
+        selected = self.friend_listbox.curselection()
+        if selected:
+            index = selected[0]
+            friend = self.friend_listbox.get(index)
+            self.friends.remove(friend)
+            self.save_friends()
+            self.refresh_friend_list()
+            self.chat_listbox.delete(0, tk.END)
+
+    def save_friends(self):
+        if os.path.exists(FRIEND_FILE):
+            with open(FRIEND_FILE, "r") as f:
+                data = json.load(f)
+        else:
+            data = {}
+        data[self.my_id] = self.friends
+        with open(FRIEND_FILE, "w") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+    def load_chat(self, event):
+        if not self.friend_listbox.curselection():
+            return
+        index = self.friend_listbox.curselection()[0]
+        target = self.friend_listbox.get(index)
+        self.current_chat_target = target
+        self.chat_listbox.delete(0, tk.END)
+
+        path = self.get_chat_file(target)
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                messages = json.load(f)
+                for msg in messages:
+                    self.chat_listbox.insert(tk.END, f"{msg['user']}: {msg['message']}")
+
+    def on_enter(self, event):
+        if event.state & 0x0001:  # Shift + Enter
+            return
+        self.send_message()
+        return "break"
+
+    def send_message(self):
+        msg = self.message_entry.get("1.0", tk.END).strip()
+        if not msg or not self.current_chat_target:
+            return
+
+        self.chat_listbox.insert(tk.END, f"{self.my_id}: {msg}")
+        self.message_entry.delete("1.0", tk.END)
+
+        path = self.get_chat_file(self.current_chat_target)
+        messages = []
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                try:
+                    messages = json.load(f)
+                except:
+                    messages = []
+        messages.append({"user": self.my_id, "message": msg})
+        with open(path, "w") as f:
+            json.dump(messages, f, ensure_ascii=False, indent=4)
+
+
+# 실행
+    def start_zerotalk():
     root = tk.Tk()
-    app = MainScreenApp(root)
+    LoginScreen(root)
     root.mainloop()
+
+
+if __name__ == "__main__":
+    start_zerotalk()
+        
