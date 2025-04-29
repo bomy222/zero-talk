@@ -13,6 +13,24 @@ users_db = {}  # username: {password, wallet}
 chats_db = {}  # room: [ {user, message, timestamp} ]
 transactions_db = []  # {sender, receiver, amount, time}
 
+# 기존: socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+# 채팅 메시지 처리
+@socketio.on('send_message')
+def handle_send_message(data):
+    print("받은 메시지:", data)
+    emit('receive_message', data, broadcast=True)
+
+@socketio.on('connect')
+def handle_connect():
+    print("클라이언트 연결됨")
+    emit('receive_message', {"user": "시스템", "message": "서버에 연결되었습니다."})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print("클라이언트 연결 종료됨")
+    
 # JWT 토큰용 헬퍼
 def encode_auth_token(username):
     try:
@@ -144,3 +162,8 @@ def handle_send_message(data):
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)
+
+from zerotalk_main import start_zerotalk
+
+if __name__ == "__main__":
+    start_zerotalk()  

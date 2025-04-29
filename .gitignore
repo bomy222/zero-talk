@@ -1,19 +1,10 @@
-# 가상환경 제외
 __pycache__/
 *.py[cod]
-*.so
+*.env
 *.log
-
-venv/
-pyenv/
-Include/
-Lib/
-Scripts/
-
-# IDE 설정 제외
+env/
 .vscode/
-.idea/
-
-# 환경설정 제외
-.env
-*.cfg
+*.egg-info/
+dist/
+build/
+zerotalk_logs.json

@@ -1,9 +1,10 @@
 import tkinter as tk
-from tkinter import messagebox
-from templates.main_screen import MainScreen
-import os
-import time
-import json
+from templates.login import LoginScreen
+
+def start_zerotalk():
+    root = tk.Tk()
+    app = LoginScreen(root)
+    root.mainloop
 
 def start_main_screen(username):
     root = tk.Tk()
