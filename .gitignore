@@ -1,24 +1,19 @@
-# Created by venv; see https://docs.python.org/3/library/venv.html
-
-# Python
+# 가상환경 제외
 __pycache__/
 *.py[cod]
 *.so
-*.egg-info/
-dist/
-build/
-
-# VSCode settings
-.vscode/
-
-# Environment
-env/
-*.env
-*.cfg
-
-# System
-.DS_Store
-Thumbs.db
-
-# 기타
 *.log
+
+venv/
+pyenv/
+Include/
+Lib/
+Scripts/
+
+# IDE 설정 제외
+.vscode/
+.idea/
+
+# 환경설정 제외
+.env
+*.cfg
