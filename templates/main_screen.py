@@ -1,3 +1,4 @@
+
 import tkinter as tk
 from tkinter import simpledialog
 import json
@@ -16,7 +17,7 @@ class MainScreen:
     active_instance = None
 
     def __init__(self, root, username):
-      
+        MainScreen.active_instance = self
         self.root = root
         self.username = username
         self.active_friend = None
@@ -141,7 +142,8 @@ class MainScreen:
     def append_chat(self, sender, message, timestamp):
         self.chat_display.config(state=tk.NORMAL)
         label = "나" if sender == self.username else sender
-        self.chat_display.insert(tk.END, f"{timestamp} | {label}: {message}\n")
+        self.chat_display.insert(tk.END, f"{timestamp} | {label}: {message}
+")
         self.chat_display.config(state=tk.DISABLED)
         self.chat_display.see(tk.END)
 
@@ -167,7 +169,8 @@ class MainScreen:
                 with open(path, "r", encoding="utf-8") as f:
                     history = json.load(f)
                     for entry in history:
-                        self.chat_display.insert(tk.END, f"{entry['time']} | {entry['sender']}: {entry['message']}\n")
+                        self.chat_display.insert(tk.END, f"{entry['time']} | {entry['sender']}: {entry['message']}
+")
             except:
                 pass
         self.chat_display.config(state=tk.DISABLED)
@@ -185,3 +188,4 @@ def on_receive(data):
     if app.active_friend == data["sender"]:
         app.append_chat(data["sender"], data["message"], data["timestamp"])
     app.save_chat(data["sender"], app.username, data["message"], data["timestamp"])
+
