@@ -1,10 +1,1 @@
-__pycache__/
-*.py[cod]
-*.env
-*.log
-env/
-.vscode/
-*.egg-info/
-dist/
-build/
-zerotalk_logs.json
+__pycache__/\n.env\n*.pyc
