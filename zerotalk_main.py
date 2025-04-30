@@ -125,7 +125,8 @@ class ZeroTalkApp:
 
     def build_signup_screen(self):
         self.clear_screen()
-        signup_frame = tk.Frame(self.master)
+        signup_frame = tk.Fra
+        me(self.master)
         signup_frame.pack(pady=100)
 
         tk.Label(signup_frame, text="ZeroTalk 회원가입", font=("Arial", 20, "bold")).pack(pady=20)
