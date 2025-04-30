@@ -1,10 +1,12 @@
 import tkinter as tk
 from templates.login import LoginScreen
 
+
 def start_zerotalk():
     root = tk.Tk()
     app = LoginScreen(root)
     root.mainloop
+
 
 def start_main_screen(username):
     root = tk.Tk()
@@ -13,11 +15,13 @@ def start_main_screen(username):
     app = MainScreen(root, username)
     root.mainloop()
 
+
 def go_to_main_screen(root, username):
     root.destroy()  # 기존 로그인 창 닫고
     main_root = tk.Tk()  # 새 창 열고
     app = MainScreen(main_root, username)
     main_root.mainloop()
+
 
 class ZeroTalkApp:
     def __init__(self, master):
@@ -66,18 +70,22 @@ class ZeroTalkApp:
         self.login_frame = tk.Frame(self.master)
         self.login_frame.pack(pady=100)
 
-        tk.Label(self.login_frame, text="ZeroTalk 로그인", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.login_frame, text="ZeroTalk 로그인",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
         tk.Label(self.login_frame, text="아이디", font=("Arial", 12)).pack()
         self.id_entry = tk.Entry(self.login_frame, font=("Arial", 14))
         self.id_entry.pack(pady=5)
 
         tk.Label(self.login_frame, text="비밀번호", font=("Arial", 12)).pack()
-        self.pw_entry = tk.Entry(self.login_frame, show="*", font=("Arial", 14))
+        self.pw_entry = tk.Entry(
+            self.login_frame, show="*", font=("Arial", 14))
         self.pw_entry.pack(pady=5)
 
-        tk.Button(self.login_frame, text="로그인", font=("Arial", 14, "bold"), width=15, command=self.login).pack(pady=10)
-        tk.Button(self.login_frame, text="회원가입", font=("Arial", 12), width=15, command=self.build_signup_screen).pack()
+        tk.Button(self.login_frame, text="로그인", font=(
+            "Arial", 14, "bold"), width=15, command=self.login).pack(pady=10)
+        tk.Button(self.login_frame, text="회원가입", font=("Arial", 12),
+                  width=15, command=self.build_signup_screen).pack()
 
     def login(self):
         id_ = self.id_entry.get().strip()
@@ -86,7 +94,8 @@ class ZeroTalkApp:
         if id_ in self.user_data and self.user_data[id_]['password'] == pw:
             self.user_id = id_
             self.password = pw
-            self.wallet = self.user_data[id_].get('wallet', self.generate_wallet())
+            self.wallet = self.user_data[id_].get(
+                'wallet', self.generate_wallet())
             self.friends = self.user_data[id_].get('friends', [])
             self.blocked = self.user_data[id_].get('blocked', [])
             self.save_log("로그인 성공")
@@ -120,7 +129,8 @@ class ZeroTalkApp:
         self.save_log("회원가입", f"가입 ID: {id_}")
 
     def generate_wallet(self):
-        wallet_address = ''.join(random.choices(string.ascii_letters + string.digits, k=42))
+        wallet_address = ''.join(random.choices(
+            string.ascii_letters + string.digits, k=42))
         return {'address': wallet_address, 'balance': 0.0}
 
     def build_signup_screen(self):
@@ -128,18 +138,22 @@ class ZeroTalkApp:
         signup_frame = tk.Frame(self.master)
         signup_frame.pack(pady=100)
 
-        tk.Label(signup_frame, text="ZeroTalk 회원가입", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(signup_frame, text="ZeroTalk 회원가입",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
         tk.Label(signup_frame, text="새 아이디", font=("Arial", 12)).pack()
         self.new_id_entry = tk.Entry(signup_frame, font=("Arial", 14))
         self.new_id_entry.pack(pady=5)
 
         tk.Label(signup_frame, text="새 비밀번호", font=("Arial", 12)).pack()
-        self.new_pw_entry = tk.Entry(signup_frame, font=("Arial", 14), show="*")
+        self.new_pw_entry = tk.Entry(
+            signup_frame, font=("Arial", 14), show="*")
         self.new_pw_entry.pack(pady=5)
 
-        tk.Button(signup_frame, text="가입 완료", font=("Arial", 14, "bold"), width=15, command=self.finish_signup).pack(pady=10)
-        tk.Button(signup_frame, text="뒤로가기", font=("Arial", 12), width=15, command=self.build_login_screen).pack()
+        tk.Button(signup_frame, text="가입 완료", font=("Arial", 14, "bold"),
+                  width=15, command=self.finish_signup).pack(pady=10)
+        tk.Button(signup_frame, text="뒤로가기", font=("Arial", 12),
+                  width=15, command=self.build_login_screen).pack()
 
     def finish_signup(self):
         new_id = self.new_id_entry.get().strip()
@@ -175,14 +189,21 @@ class ZeroTalkApp:
         self.main_frame = tk.Frame(self.master)
         self.main_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.main_frame, text=f"환영합니다, {self.user_id}님", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.main_frame, text=f"환영합니다, {self.user_id}님", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
-        tk.Button(self.main_frame, text="친구 목록", font=("Arial", 14), width=20, command=self.show_friends_window).pack(pady=10)
-        tk.Button(self.main_frame, text="채팅방", font=("Arial", 14), width=20, command=self.show_chat_window).pack(pady=10)
-        tk.Button(self.main_frame, text="내 지갑 보기", font=("Arial", 14), width=20, command=self.open_wallet_window).pack(pady=10)
-        tk.Button(self.main_frame, text="친구 요청 확인", font=("Arial", 14), width=20, command=self.check_received_requests).pack(pady=10)
-        tk.Button(self.main_frame, text="친구 요청 보내기", font=("Arial", 14), width=20, command=self.request_friend).pack(pady=10)
-        tk.Button(self.main_frame, text="로그아웃", font=("Arial", 12), width=15, command=self.logout).pack(pady=20)
+        tk.Button(self.main_frame, text="친구 목록", font=("Arial", 14),
+                  width=20, command=self.show_friends_window).pack(pady=10)
+        tk.Button(self.main_frame, text="채팅방", font=("Arial", 14),
+                  width=20, command=self.show_chat_window).pack(pady=10)
+        tk.Button(self.main_frame, text="내 지갑 보기", font=("Arial", 14),
+                  width=20, command=self.open_wallet_window).pack(pady=10)
+        tk.Button(self.main_frame, text="친구 요청 확인", font=("Arial", 14),
+                  width=20, command=self.check_received_requests).pack(pady=10)
+        tk.Button(self.main_frame, text="친구 요청 보내기", font=("Arial", 14),
+                  width=20, command=self.request_friend).pack(pady=10)
+        tk.Button(self.main_frame, text="로그아웃", font=("Arial", 12),
+                  width=15, command=self.logout).pack(pady=20)
 
     def logout(self):
         self.save_log("로그아웃")
@@ -198,16 +219,20 @@ class ZeroTalkApp:
         self.friends_frame = tk.Frame(self.master)
         self.friends_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.friends_frame, text="친구 목록", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.friends_frame, text="친구 목록",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
-        self.friend_listbox = tk.Listbox(self.friends_frame, font=("Arial", 12))
+        self.friend_listbox = tk.Listbox(
+            self.friends_frame, font=("Arial", 12))
         self.friend_listbox.pack(pady=10, fill="both", expand=True)
 
         for friend in self.friends:
             self.friend_listbox.insert(tk.END, friend)
 
-        tk.Button(self.friends_frame, text="친구 삭제", font=("Arial", 12), width=15, command=self.delete_friend).pack(pady=5)
-        tk.Button(self.friends_frame, text="뒤로가기", font=("Arial", 12), width=15, command=self.build_main_screen).pack(pady=5)
+        tk.Button(self.friends_frame, text="친구 삭제", font=("Arial", 12),
+                  width=15, command=self.delete_friend).pack(pady=5)
+        tk.Button(self.friends_frame, text="뒤로가기", font=("Arial", 12),
+                  width=15, command=self.build_main_screen).pack(pady=5)
 
     def delete_friend(self):
         selected = self.friend_listbox.curselection()
@@ -229,34 +254,44 @@ class ZeroTalkApp:
         self.wallet_frame = tk.Frame(self.master)
         self.wallet_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.wallet_frame, text="내 지갑", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.wallet_frame, text="내 지갑", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
         wallet_address = self.wallet.get('address', '지갑 없음')
         wallet_balance = self.wallet.get('balance', 0.0)
 
-        tk.Label(self.wallet_frame, text=f"주소: {wallet_address}", font=("Arial", 12)).pack(pady=5)
-        tk.Label(self.wallet_frame, text=f"잔액: {wallet_balance:.2f} TLK", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.wallet_frame, text=f"주소: {wallet_address}", font=(
+            "Arial", 12)).pack(pady=5)
+        tk.Label(self.wallet_frame, text=f"잔액: {wallet_balance:.2f} TLK", font=(
+            "Arial", 12)).pack(pady=5)
 
-        tk.Button(self.wallet_frame, text="코인 보내기", font=("Arial", 14), width=20, command=self.send_coin_window).pack(pady=10)
-        tk.Button(self.wallet_frame, text="뒤로가기", font=("Arial", 12), width=15, command=self.build_main_screen).pack(pady=10)
+        tk.Button(self.wallet_frame, text="코인 보내기", font=("Arial", 14),
+                  width=20, command=self.send_coin_window).pack(pady=10)
+        tk.Button(self.wallet_frame, text="뒤로가기", font=("Arial", 12),
+                  width=15, command=self.build_main_screen).pack(pady=10)
 
     def send_coin_window(self):
         self.clear_screen()
         self.send_frame = tk.Frame(self.master)
         self.send_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.send_frame, text="코인 보내기", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.send_frame, text="코인 보내기", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
-        tk.Label(self.send_frame, text="받는 사람 ID", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.send_frame, text="받는 사람 ID",
+                 font=("Arial", 12)).pack(pady=5)
         self.recipient_entry = tk.Entry(self.send_frame, font=("Arial", 12))
         self.recipient_entry.pack(pady=5)
 
-        tk.Label(self.send_frame, text="보낼 금액 (TLK)", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.send_frame, text="보낼 금액 (TLK)",
+                 font=("Arial", 12)).pack(pady=5)
         self.amount_entry = tk.Entry(self.send_frame, font=("Arial", 12))
         self.amount_entry.pack(pady=5)
 
-        tk.Button(self.send_frame, text="전송하기", font=("Arial", 14), width=20, command=self.send_coin).pack(pady=10)
-        tk.Button(self.send_frame, text="뒤로가기", font=("Arial", 12), width=15, command=self.open_wallet_window).pack(pady=10)
+        tk.Button(self.send_frame, text="전송하기", font=("Arial", 14),
+                  width=20, command=self.send_coin).pack(pady=10)
+        tk.Button(self.send_frame, text="뒤로가기", font=("Arial", 12),
+                  width=15, command=self.open_wallet_window).pack(pady=10)
 
     def send_coin(self):
         recipient = self.recipient_entry.get().strip()
@@ -282,7 +317,8 @@ class ZeroTalkApp:
         total_amount = amount + tlk_fee
 
         if self.wallet['balance'] < total_amount:
-            messagebox.showerror("오류", f"잔액 부족: {amount} TLK + 수수료 {tlk_fee:.2f} TLK 필요")
+            messagebox.showerror(
+                "오류", f"잔액 부족: {amount} TLK + 수수료 {tlk_fee:.2f} TLK 필요")
             return
 
         # 송금 및 수수료 계산
@@ -291,9 +327,11 @@ class ZeroTalkApp:
         self.user_data[recipient]['wallet']['balance'] += amount
 
         self.save_user_data()
-        self.save_log("코인 전송", f"{recipient}에게 {amount} TLK 전송, 수수료 {tlk_fee:.2f} TLK 부과")
+        self.save_log(
+            "코인 전송", f"{recipient}에게 {amount} TLK 전송, 수수료 {tlk_fee:.2f} TLK 부과")
 
-        messagebox.showinfo("전송 성공", f"{recipient}님에게 {amount} TLK 전송 완료\n(수수료 {tlk_fee:.2f} TLK 차감)")
+        messagebox.showinfo(
+            "전송 성공", f"{recipient}님에게 {amount} TLK 전송 완료\n(수수료 {tlk_fee:.2f} TLK 차감)")
         self.open_wallet_window()
 
     def show_chat_window(self):
@@ -301,19 +339,23 @@ class ZeroTalkApp:
         self.chat_frame = tk.Frame(self.master)
         self.chat_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.chat_frame, text="채팅방", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.chat_frame, text="채팅방", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
-        self.chat_log = tk.Text(self.chat_frame, state="disabled", height=20, bg="#f4f4f4", font=("Arial", 12))
+        self.chat_log = tk.Text(
+            self.chat_frame, state="disabled", height=20, bg="#f4f4f4", font=("Arial", 12))
         self.chat_log.pack(pady=10, fill="both", expand=True)
 
         self.chat_entry = tk.Entry(self.chat_frame, font=("Arial", 12))
         self.chat_entry.pack(pady=5, fill="x", padx=10)
         self.chat_entry.bind("<Return>", self.send_chat_message)
 
-        send_btn = tk.Button(self.chat_frame, text="메시지 보내기", font=("Arial", 12), command=self.send_chat_message)
+        send_btn = tk.Button(self.chat_frame, text="메시지 보내기", font=(
+            "Arial", 12), command=self.send_chat_message)
         send_btn.pack(pady=5)
 
-        back_btn = tk.Button(self.chat_frame, text="뒤로가기", font=("Arial", 12), command=self.build_main_screen)
+        back_btn = tk.Button(self.chat_frame, text="뒤로가기", font=(
+            "Arial", 12), command=self.build_main_screen)
         back_btn.pack(pady=10)
 
     def send_chat_message(self, event=None):
@@ -349,29 +391,40 @@ class ZeroTalkApp:
         self.settings_frame = tk.Frame(self.master)
         self.settings_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.settings_frame, text="설정", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.settings_frame, text="설정", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
-        tk.Button(self.settings_frame, text="비밀번호 변경", font=("Arial", 14), command=self.change_password).pack(pady=10)
-        tk.Button(self.settings_frame, text="데이터 백업", font=("Arial", 14), command=self.backup_data).pack(pady=10)
-        tk.Button(self.settings_frame, text="뒤로가기", font=("Arial", 12), command=self.build_main_screen).pack(pady=20)
+        tk.Button(self.settings_frame, text="비밀번호 변경", font=(
+            "Arial", 14), command=self.change_password).pack(pady=10)
+        tk.Button(self.settings_frame, text="데이터 백업", font=(
+            "Arial", 14), command=self.backup_data).pack(pady=10)
+        tk.Button(self.settings_frame, text="뒤로가기", font=(
+            "Arial", 12), command=self.build_main_screen).pack(pady=20)
 
     def change_password(self):
         self.clear_screen()
         self.change_pw_frame = tk.Frame(self.master)
         self.change_pw_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.change_pw_frame, text="비밀번호 변경", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.change_pw_frame, text="비밀번호 변경",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
-        tk.Label(self.change_pw_frame, text="현재 비밀번호", font=("Arial", 12)).pack(pady=5)
-        self.current_pw_entry = tk.Entry(self.change_pw_frame, show="*", font=("Arial", 12))
+        tk.Label(self.change_pw_frame, text="현재 비밀번호",
+                 font=("Arial", 12)).pack(pady=5)
+        self.current_pw_entry = tk.Entry(
+            self.change_pw_frame, show="*", font=("Arial", 12))
         self.current_pw_entry.pack(pady=5)
 
-        tk.Label(self.change_pw_frame, text="새 비밀번호", font=("Arial", 12)).pack(pady=5)
-        self.new_pw_entry = tk.Entry(self.change_pw_frame, show="*", font=("Arial", 12))
+        tk.Label(self.change_pw_frame, text="새 비밀번호",
+                 font=("Arial", 12)).pack(pady=5)
+        self.new_pw_entry = tk.Entry(
+            self.change_pw_frame, show="*", font=("Arial", 12))
         self.new_pw_entry.pack(pady=5)
 
-        tk.Button(self.change_pw_frame, text="변경하기", font=("Arial", 14), command=self.update_password).pack(pady=10)
-        tk.Button(self.change_pw_frame, text="뒤로가기", font=("Arial", 12), command=self.show_settings).pack(pady=10)
+        tk.Button(self.change_pw_frame, text="변경하기", font=(
+            "Arial", 14), command=self.update_password).pack(pady=10)
+        tk.Button(self.change_pw_frame, text="뒤로가기", font=(
+            "Arial", 12), command=self.show_settings).pack(pady=10)
 
     def update_password(self):
         current_pw = self.current_pw_entry.get().strip()
@@ -396,59 +449,76 @@ class ZeroTalkApp:
         self.transaction_frame = tk.Frame(self.master)
         self.transaction_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.transaction_frame, text="송금 기록 (TLK)", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.transaction_frame, text="송금 기록 (TLK)",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
         if os.path.exists('log_data.json'):
             with open('log_data.json', 'r', encoding='utf-8') as f:
                 logs = json.load(f)
 
-            user_logs = [log for log in logs if log['user'] == self.user_id and log['action'] == '코인 전송']
+            user_logs = [log for log in logs if log['user']
+                         == self.user_id and log['action'] == '코인 전송']
 
             if user_logs:
                 for log in user_logs:
                     info = f"{log['time']}: {log['details']}"
-                    tk.Label(self.transaction_frame, text=info, font=("Arial", 10)).pack(pady=2)
+                    tk.Label(self.transaction_frame, text=info,
+                             font=("Arial", 10)).pack(pady=2)
             else:
-                tk.Label(self.transaction_frame, text="송금 기록이 없습니다.", font=("Arial", 12)).pack(pady=10)
+                tk.Label(self.transaction_frame, text="송금 기록이 없습니다.",
+                         font=("Arial", 12)).pack(pady=10)
         else:
-            tk.Label(self.transaction_frame, text="로그 데이터가 없습니다.", font=("Arial", 12)).pack(pady=10)
+            tk.Label(self.transaction_frame, text="로그 데이터가 없습니다.",
+                     font=("Arial", 12)).pack(pady=10)
 
-        tk.Button(self.transaction_frame, text="뒤로가기", font=("Arial", 12), command=self.open_wallet_window).pack(pady=20)
+        tk.Button(self.transaction_frame, text="뒤로가기", font=(
+            "Arial", 12), command=self.open_wallet_window).pack(pady=20)
 
     def open_wallet_window(self):
         self.clear_screen()
         self.wallet_frame = tk.Frame(self.master)
         self.wallet_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.wallet_frame, text="내 지갑", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.wallet_frame, text="내 지갑", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
         address = self.wallet.get('address', '지갑 없음')
         balance = self.wallet.get('balance', 0)
 
-        tk.Label(self.wallet_frame, text=f"주소: {address}", font=("Arial", 12)).pack(pady=5)
-        tk.Label(self.wallet_frame, text=f"잔액: {balance} TLK", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.wallet_frame, text=f"주소: {address}", font=(
+            "Arial", 12)).pack(pady=5)
+        tk.Label(self.wallet_frame, text=f"잔액: {balance} TLK", font=(
+            "Arial", 12)).pack(pady=5)
 
-        tk.Button(self.wallet_frame, text="TLK 보내기", font=("Arial", 14), command=self.send_coin_window).pack(pady=10)
-        tk.Button(self.wallet_frame, text="송금 기록 보기", font=("Arial", 14), command=self.open_tlk_transaction_log).pack(pady=10)
-        tk.Button(self.wallet_frame, text="뒤로가기", font=("Arial", 12), command=self.build_main_screen).pack(pady=20)
+        tk.Button(self.wallet_frame, text="TLK 보내기", font=(
+            "Arial", 14), command=self.send_coin_window).pack(pady=10)
+        tk.Button(self.wallet_frame, text="송금 기록 보기", font=(
+            "Arial", 14), command=self.open_tlk_transaction_log).pack(pady=10)
+        tk.Button(self.wallet_frame, text="뒤로가기", font=("Arial", 12),
+                  command=self.build_main_screen).pack(pady=20)
 
     def send_coin_window(self):
         self.clear_screen()
         self.send_frame = tk.Frame(self.master)
         self.send_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.send_frame, text="코인 보내기", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.send_frame, text="코인 보내기", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
-        tk.Label(self.send_frame, text="받는 사람 ID", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.send_frame, text="받는 사람 ID",
+                 font=("Arial", 12)).pack(pady=5)
         self.recipient_entry = tk.Entry(self.send_frame, font=("Arial", 12))
         self.recipient_entry.pack(pady=5)
 
-        tk.Label(self.send_frame, text="보낼 수량 (TLK)", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.send_frame, text="보낼 수량 (TLK)",
+                 font=("Arial", 12)).pack(pady=5)
         self.amount_entry = tk.Entry(self.send_frame, font=("Arial", 12))
         self.amount_entry.pack(pady=5)
 
-        tk.Button(self.send_frame, text="보내기", font=("Arial", 14), command=self.process_send_coin).pack(pady=10)
-        tk.Button(self.send_frame, text="뒤로가기", font=("Arial", 12), command=self.open_wallet_window).pack(pady=20)
+        tk.Button(self.send_frame, text="보내기", font=("Arial", 14),
+                  command=self.process_send_coin).pack(pady=10)
+        tk.Button(self.send_frame, text="뒤로가기", font=("Arial", 12),
+                  command=self.open_wallet_window).pack(pady=20)
 
     def process_send_coin(self):
         recipient = self.recipient_entry.get().strip()
@@ -474,7 +544,8 @@ class ZeroTalkApp:
         total_required = amount + fee
 
         if self.wallet['balance'] < total_required:
-            messagebox.showerror("오류", f"잔액이 부족합니다. 수수료 포함 필요: {total_required} TLK")
+            messagebox.showerror(
+                "오류", f"잔액이 부족합니다. 수수료 포함 필요: {total_required} TLK")
             return
 
         # 전송 처리
@@ -483,9 +554,11 @@ class ZeroTalkApp:
         self.user_data[recipient]['wallet']['balance'] += amount
 
         self.save_user_data()
-        self.save_log("코인 전송", f"To: {recipient}, Amount: {amount}, Fee: {fee}")
+        self.save_log(
+            "코인 전송", f"To: {recipient}, Amount: {amount}, Fee: {fee}")
 
-        messagebox.showinfo("성공", f"{recipient}님에게 {amount} TLK 전송 완료!\n(수수료 {fee} TLK 발생)")
+        messagebox.showinfo(
+            "성공", f"{recipient}님에게 {amount} TLK 전송 완료!\n(수수료 {fee} TLK 발생)")
         self.open_wallet_window()
 
     def theme_selector(self):
@@ -493,14 +566,16 @@ class ZeroTalkApp:
         self.theme_frame = tk.Frame(self.master)
         self.theme_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.theme_frame, text="테마 선택", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.theme_frame, text="테마 선택", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
         themes = ["핑크", "화이트", "다크", "보라", "블루"]
         for t in themes:
             tk.Button(self.theme_frame, text=t, font=("Arial", 14),
                       command=lambda theme=t: self.apply_theme(theme)).pack(pady=5)
 
-        tk.Button(self.theme_frame, text="뒤로가기", font=("Arial", 12), command=self.build_main_screen).pack(pady=20)
+        tk.Button(self.theme_frame, text="뒤로가기", font=("Arial", 12),
+                  command=self.build_main_screen).pack(pady=20)
 
     def apply_theme(self, theme_name):
         theme_colors = {
@@ -520,7 +595,8 @@ class ZeroTalkApp:
         self.market_frame = tk.Frame(self.master)
         self.market_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.market_frame, text="NFT 마켓플레이스 (BomiNFT)", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.market_frame, text="NFT 마켓플레이스 (BomiNFT)",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
         nft_items = [
             {"name": "핑크 보미", "price": 100},
@@ -532,18 +608,21 @@ class ZeroTalkApp:
             frame = tk.Frame(self.market_frame)
             frame.pack(pady=5)
 
-            tk.Label(frame, text=f"{nft['name']} - {nft['price']} TLK", font=("Arial", 12)).pack(side="left", padx=5)
+            tk.Label(frame, text=f"{nft['name']} - {nft['price']} TLK",
+                     font=("Arial", 12)).pack(side="left", padx=5)
             tk.Button(frame, text="구매", font=("Arial", 12),
                       command=lambda n=nft: self.purchase_nft(n)).pack(side="left", padx=5)
 
-        tk.Button(self.market_frame, text="뒤로가기", font=("Arial", 12), command=self.build_main_screen).pack(pady=20)
+        tk.Button(self.market_frame, text="뒤로가기", font=("Arial", 12),
+                  command=self.build_main_screen).pack(pady=20)
 
     def purchase_nft(self, nft):
         if self.wallet['balance'] < nft['price']:
             messagebox.showerror("구매 실패", "잔액이 부족합니다.")
             return
 
-        confirm = messagebox.askyesno("구매 확인", f"{nft['name']}를 {nft['price']} TLK로 구매하시겠습니까?")
+        confirm = messagebox.askyesno(
+            "구매 확인", f"{nft['name']}를 {nft['price']} TLK로 구매하시겠습니까?")
         if confirm:
             self.wallet['balance'] -= nft['price']
             self.user_data[self.user_id]['wallet']['balance'] = self.wallet['balance']
@@ -557,7 +636,8 @@ class ZeroTalkApp:
         self.settings_frame = tk.Frame(self.master)
         self.settings_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.settings_frame, text="설정", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.settings_frame, text="설정", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
         tk.Button(self.settings_frame, text="비밀번호 변경", font=("Arial", 14),
                   command=self.change_password).pack(pady=10)
@@ -576,14 +656,19 @@ class ZeroTalkApp:
         self.change_pw_frame = tk.Frame(self.master)
         self.change_pw_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.change_pw_frame, text="비밀번호 변경", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.change_pw_frame, text="비밀번호 변경",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
-        tk.Label(self.change_pw_frame, text="현재 비밀번호", font=("Arial", 12)).pack(pady=5)
-        self.current_pw_entry = tk.Entry(self.change_pw_frame, font=("Arial", 12), show="*")
+        tk.Label(self.change_pw_frame, text="현재 비밀번호",
+                 font=("Arial", 12)).pack(pady=5)
+        self.current_pw_entry = tk.Entry(
+            self.change_pw_frame, font=("Arial", 12), show="*")
         self.current_pw_entry.pack(pady=5)
 
-        tk.Label(self.change_pw_frame, text="새 비밀번호", font=("Arial", 12)).pack(pady=5)
-        self.new_pw_entry = tk.Entry(self.change_pw_frame, font=("Arial", 12), show="*")
+        tk.Label(self.change_pw_frame, text="새 비밀번호",
+                 font=("Arial", 12)).pack(pady=5)
+        self.new_pw_entry = tk.Entry(
+            self.change_pw_frame, font=("Arial", 12), show="*")
         self.new_pw_entry.pack(pady=5)
 
         tk.Button(self.change_pw_frame, text="변경", font=("Arial", 14),
@@ -610,13 +695,17 @@ class ZeroTalkApp:
         self.two_factor_frame = tk.Frame(self.master)
         self.two_factor_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.two_factor_frame, text="2단계 인증 설정", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.two_factor_frame, text="2단계 인증 설정",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
-        tk.Label(self.two_factor_frame, text="패턴 등록 (숫자 4자리)", font=("Arial", 12)).pack(pady=5)
-        self.pattern_entry = tk.Entry(self.two_factor_frame, font=("Arial", 12))
+        tk.Label(self.two_factor_frame, text="패턴 등록 (숫자 4자리)",
+                 font=("Arial", 12)).pack(pady=5)
+        self.pattern_entry = tk.Entry(
+            self.two_factor_frame, font=("Arial", 12))
         self.pattern_entry.pack(pady=5)
 
-        tk.Label(self.two_factor_frame, text="백업 번호 등록 (선택)", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.two_factor_frame, text="백업 번호 등록 (선택)",
+                 font=("Arial", 12)).pack(pady=5)
         self.backup_entry = tk.Entry(self.two_factor_frame, font=("Arial", 12))
         self.backup_entry.pack(pady=5)
 
@@ -665,17 +754,20 @@ class ZeroTalkApp:
                 messagebox.showerror("실패", "패턴이 틀립니다.")
                 return False
 
-        tk.Button(auth_win, text="확인", font=("Arial", 14), command=check_pattern).pack(pady=20)
+        tk.Button(auth_win, text="확인", font=("Arial", 14),
+                  command=check_pattern).pack(pady=20)
 
     def open_tlk_transaction_log(self):
         self.clear_screen()
         self.tlk_log_frame = tk.Frame(self.master)
         self.tlk_log_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.tlk_log_frame, text="TLK 송금 기록", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.tlk_log_frame, text="TLK 송금 기록",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
         if not os.path.exists('log_data.json'):
-            tk.Label(self.tlk_log_frame, text="기록이 없습니다.", font=("Arial", 12)).pack(pady=10)
+            tk.Label(self.tlk_log_frame, text="기록이 없습니다.",
+                     font=("Arial", 12)).pack(pady=10)
             tk.Button(self.tlk_log_frame, text="뒤로가기", font=("Arial", 12),
                       command=self.open_wallet_window).pack(pady=20)
             return
@@ -696,7 +788,8 @@ class ZeroTalkApp:
         self.theme_frame = tk.Frame(self.master)
         self.theme_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.theme_frame, text="테마 선택", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.theme_frame, text="테마 선택", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
         tk.Button(self.theme_frame, text="기본 화이트", font=("Arial", 14),
                   command=lambda: self.apply_theme("white")).pack(pady=10)
@@ -728,20 +821,27 @@ class ZeroTalkApp:
         self.wallet_frame = tk.Frame(self.master)
         self.wallet_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.wallet_frame, text="ZeroTalk Wallet", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.wallet_frame, text="ZeroTalk Wallet",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
         wallet = self.user_data[self.user_id]['wallet']
         eth_balance = wallet.get('eth', 0)
         btc_balance = wallet.get('btc', 0)
         tlk_balance = wallet.get('tlk', 0)
 
-        tk.Label(self.wallet_frame, text=f"ETH 잔액: {eth_balance}", font=("Arial", 14)).pack(pady=5)
-        tk.Label(self.wallet_frame, text=f"BTC 잔액: {btc_balance}", font=("Arial", 14)).pack(pady=5)
-        tk.Label(self.wallet_frame, text=f"TLK 잔액: {tlk_balance}", font=("Arial", 14)).pack(pady=5)
+        tk.Label(self.wallet_frame, text=f"ETH 잔액: {eth_balance}", font=(
+            "Arial", 14)).pack(pady=5)
+        tk.Label(self.wallet_frame, text=f"BTC 잔액: {btc_balance}", font=(
+            "Arial", 14)).pack(pady=5)
+        tk.Label(self.wallet_frame, text=f"TLK 잔액: {tlk_balance}", font=(
+            "Arial", 14)).pack(pady=5)
 
-        tk.Button(self.wallet_frame, text="코인 전송", font=("Arial", 14), command=self.open_send_coin).pack(pady=10)
-        tk.Button(self.wallet_frame, text="TLK 구매", font=("Arial", 14), command=self.open_buy_tlk).pack(pady=10)
-        tk.Button(self.wallet_frame, text="송금 기록", font=("Arial", 14), command=self.open_tlk_transaction_log).pack(pady=10)
+        tk.Button(self.wallet_frame, text="코인 전송", font=(
+            "Arial", 14), command=self.open_send_coin).pack(pady=10)
+        tk.Button(self.wallet_frame, text="TLK 구매", font=(
+            "Arial", 14), command=self.open_buy_tlk).pack(pady=10)
+        tk.Button(self.wallet_frame, text="송금 기록", font=("Arial", 14),
+                  command=self.open_tlk_transaction_log).pack(pady=10)
 
         tk.Button(self.wallet_frame, text="뒤로가기", font=("Arial", 12),
                   command=self.build_main_screen).pack(pady=20)
@@ -751,16 +851,20 @@ class ZeroTalkApp:
         self.send_frame = tk.Frame(self.master)
         self.send_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.send_frame, text="코인 전송", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.send_frame, text="코인 전송", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
-        tk.Label(self.send_frame, text="받는 ID", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.send_frame, text="받는 ID",
+                 font=("Arial", 12)).pack(pady=5)
         self.recipient_entry = tk.Entry(self.send_frame)
         self.recipient_entry.pack(pady=5)
 
-        tk.Label(self.send_frame, text="전송 코인 선택", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.send_frame, text="전송 코인 선택",
+                 font=("Arial", 12)).pack(pady=5)
         self.coin_var = tk.StringVar(self.master)
         self.coin_var.set("tlk")  # 기본은 TLK
-        tk.OptionMenu(self.send_frame, self.coin_var, "tlk", "eth", "btc").pack(pady=5)
+        tk.OptionMenu(self.send_frame, self.coin_var,
+                      "tlk", "eth", "btc").pack(pady=5)
 
         tk.Label(self.send_frame, text="수량", font=("Arial", 12)).pack(pady=5)
         self.amount_entry = tk.Entry(self.send_frame)
@@ -803,7 +907,8 @@ class ZeroTalkApp:
         self.save_user_data()
 
         self.save_log("코인 전송", f"{coin_type.upper()} {amount} -> {recipient}")
-        messagebox.showinfo("성공", f"{recipient}님에게 {amount} {coin_type.upper()} 전송 완료!")
+        messagebox.showinfo(
+            "성공", f"{recipient}님에게 {amount} {coin_type.upper()} 전송 완료!")
         self.open_wallet_window()
 
     def open_buy_tlk(self):
@@ -811,9 +916,11 @@ class ZeroTalkApp:
         self.buy_tlk_frame = tk.Frame(self.master)
         self.buy_tlk_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.buy_tlk_frame, text="TLK 구매", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.buy_tlk_frame, text="TLK 구매",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
-        tk.Label(self.buy_tlk_frame, text="구매할 TLK 수량", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.buy_tlk_frame, text="구매할 TLK 수량",
+                 font=("Arial", 12)).pack(pady=5)
         self.buy_tlk_entry = tk.Entry(self.buy_tlk_frame)
         self.buy_tlk_entry.pack(pady=5)
 
@@ -845,7 +952,8 @@ class ZeroTalkApp:
         self.log_frame = tk.Frame(self.master)
         self.log_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.log_frame, text="송금 기록", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.log_frame, text="송금 기록", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
         if os.path.exists('log_data.json'):
             with open('log_data.json', 'r', encoding='utf-8') as f:
@@ -853,10 +961,12 @@ class ZeroTalkApp:
         else:
             logs = []
 
-        user_logs = [log for log in logs if log['user'] == self.user_id and "전송" in log['action']]
+        user_logs = [log for log in logs if log['user']
+                     == self.user_id and "전송" in log['action']]
 
         if not user_logs:
-            tk.Label(self.log_frame, text="송금 기록이 없습니다.", font=("Arial", 14)).pack(pady=10)
+            tk.Label(self.log_frame, text="송금 기록이 없습니다.",
+                     font=("Arial", 14)).pack(pady=10)
         else:
             listbox = tk.Listbox(self.log_frame, font=("Arial", 12))
             listbox.pack(fill="both", expand=True, padx=10, pady=10)
@@ -872,7 +982,8 @@ class ZeroTalkApp:
         self.settings_frame = tk.Frame(self.master)
         self.settings_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.settings_frame, text="설정", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.settings_frame, text="설정", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
         tk.Button(self.settings_frame, text="비밀번호 변경", font=("Arial", 14),
                   command=self.change_password).pack(pady=10)
@@ -888,13 +999,16 @@ class ZeroTalkApp:
         self.change_pw_frame = tk.Frame(self.master)
         self.change_pw_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.change_pw_frame, text="비밀번호 변경", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.change_pw_frame, text="비밀번호 변경",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
-        tk.Label(self.change_pw_frame, text="현재 비밀번호", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.change_pw_frame, text="현재 비밀번호",
+                 font=("Arial", 12)).pack(pady=5)
         self.current_pw_entry = tk.Entry(self.change_pw_frame, show="*")
         self.current_pw_entry.pack(pady=5)
 
-        tk.Label(self.change_pw_frame, text="새 비밀번호", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.change_pw_frame, text="새 비밀번호",
+                 font=("Arial", 12)).pack(pady=5)
         self.new_pw_entry = tk.Entry(self.change_pw_frame, show="*")
         self.new_pw_entry.pack(pady=5)
 
@@ -927,7 +1041,8 @@ class ZeroTalkApp:
         self.language_frame = tk.Frame(self.master)
         self.language_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.language_frame, text="언어 설정", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.language_frame, text="언어 설정",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
         tk.Button(self.language_frame, text="한국어 (Korean)", font=("Arial", 14),
                   command=lambda: self.set_language("ko")).pack(pady=10)
@@ -954,7 +1069,8 @@ class ZeroTalkApp:
         self.theme_frame = tk.Frame(self.master)
         self.theme_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.theme_frame, text="테마 선택", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.theme_frame, text="테마 선택", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
         tk.Button(self.theme_frame, text="라이트 모드", font=("Arial", 14),
                   command=lambda: self.set_theme("light")).pack(pady=10)
@@ -989,13 +1105,15 @@ class ZeroTalkApp:
         self.market_frame = tk.Frame(self.master)
         self.market_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.market_frame, text="NFT 마켓", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.market_frame, text="NFT 마켓",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
         self.nft_listbox = tk.Listbox(self.market_frame, font=("Arial", 12))
         self.nft_listbox.pack(pady=10, fill="both", expand=True)
 
         for nft in self.available_nfts:
-            self.nft_listbox.insert(tk.END, f"{nft['name']} - {nft['price']} TLK")
+            self.nft_listbox.insert(
+                tk.END, f"{nft['name']} - {nft['price']} TLK")
 
         tk.Button(self.market_frame, text="NFT 구매", font=("Arial", 14),
                   command=self.purchase_nft).pack(pady=10)
@@ -1015,7 +1133,8 @@ class ZeroTalkApp:
             messagebox.showerror("오류", "잔액이 부족합니다.")
             return
 
-        confirm = messagebox.askyesno("구매 확인", f"{nft['name']}을(를) {price} TLK에 구매하시겠습니까?")
+        confirm = messagebox.askyesno(
+            "구매 확인", f"{nft['name']}을(를) {price} TLK에 구매하시겠습니까?")
         if confirm:
             self.wallet['balance'] -= price
             self.user_data[self.user_id]['wallet']['balance'] = self.wallet['balance']
@@ -1043,12 +1162,14 @@ class ZeroTalkApp:
         self.my_nft_frame = tk.Frame(self.master)
         self.my_nft_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.my_nft_frame, text="내 NFT 소장품", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.my_nft_frame, text="내 NFT 소장품",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
         my_nfts = self.user_data[self.user_id].get('nfts', [])
 
         if not my_nfts:
-            tk.Label(self.my_nft_frame, text="소장한 NFT가 없습니다.", font=("Arial", 14)).pack(pady=10)
+            tk.Label(self.my_nft_frame, text="소장한 NFT가 없습니다.",
+                     font=("Arial", 14)).pack(pady=10)
         else:
             listbox = tk.Listbox(self.my_nft_frame, font=("Arial", 12))
             listbox.pack(pady=10, fill="both", expand=True)
@@ -1064,7 +1185,8 @@ class ZeroTalkApp:
         self.settings_frame = tk.Frame(self.master)
         self.settings_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.settings_frame, text="설정", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.settings_frame, text="설정", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
         tk.Button(self.settings_frame, text="테마 변경", font=("Arial", 14),
                   command=self.theme_selector).pack(pady=10)
@@ -1080,10 +1202,13 @@ class ZeroTalkApp:
         self.lang_frame = tk.Frame(self.master)
         self.lang_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.lang_frame, text="언어 선택", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.lang_frame, text="언어 선택", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
-        languages = ["한국어", "English", "日本語", "中文", "Español", "Français", "Deutsch", "Português", "العربية"]
-        self.language_var = tk.StringVar(value=self.user_data[self.user_id].get('language', "한국어"))
+        languages = ["한국어", "English", "日本語", "中文", "Español",
+                     "Français", "Deutsch", "Português", "العربية"]
+        self.language_var = tk.StringVar(
+            value=self.user_data[self.user_id].get('language', "한국어"))
 
         for lang in languages:
             tk.Radiobutton(self.lang_frame, text=lang, variable=self.language_var, value=lang,
@@ -1106,9 +1231,11 @@ class ZeroTalkApp:
         self.coin_frame = tk.Frame(self.master)
         self.coin_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.coin_frame, text="코인 실시간 시세", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.coin_frame, text="코인 실시간 시세",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
-        self.coin_prices_box = tk.Text(self.coin_frame, font=("Arial", 12), height=15, state="disabled")
+        self.coin_prices_box = tk.Text(self.coin_frame, font=(
+            "Arial", 12), height=15, state="disabled")
         self.coin_prices_box.pack(pady=10, fill="both", expand=True)
 
         tk.Button(self.coin_frame, text="새로고침", font=("Arial", 14),
@@ -1133,7 +1260,8 @@ class ZeroTalkApp:
 
             for coin in coins:
                 price = data[coin]['usd']
-                self.coin_prices_box.insert(tk.END, f"{coin.capitalize()}: ${price:,.2f}\n")
+                self.coin_prices_box.insert(
+                    tk.END, f"{coin.capitalize()}: ${price:,.2f}\n")
 
             self.coin_prices_box.config(state="disabled")
         except Exception as e:
@@ -1144,10 +1272,13 @@ class ZeroTalkApp:
         self.wallet_frame = tk.Frame(self.master)
         self.wallet_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.wallet_frame, text="내 지갑", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.wallet_frame, text="내 지갑", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
-        tk.Label(self.wallet_frame, text=f"주소: {self.wallet['address']}", font=("Arial", 12)).pack(pady=5)
-        tk.Label(self.wallet_frame, text=f"잔액: {self.wallet['balance']} TLK", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.wallet_frame, text=f"주소: {self.wallet['address']}", font=(
+            "Arial", 12)).pack(pady=5)
+        tk.Label(self.wallet_frame, text=f"잔액: {self.wallet['balance']} TLK", font=(
+            "Arial", 12)).pack(pady=5)
 
         tk.Button(self.wallet_frame, text="코인 송금", font=("Arial", 14),
                   command=self.open_send_coin_window).pack(pady=10)
@@ -1159,13 +1290,16 @@ class ZeroTalkApp:
         self.send_coin_frame = tk.Frame(self.master)
         self.send_coin_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.send_coin_frame, text="코인 보내기", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.send_coin_frame, text="코인 보내기",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
-        tk.Label(self.send_coin_frame, text="받는 사람 지갑 주소", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.send_coin_frame, text="받는 사람 지갑 주소",
+                 font=("Arial", 12)).pack(pady=5)
         self.send_address_entry = tk.Entry(self.send_coin_frame)
         self.send_address_entry.pack(pady=5)
 
-        tk.Label(self.send_coin_frame, text="보낼 금액 (TLK)", font=("Arial", 12)).pack(pady=5)
+        tk.Label(self.send_coin_frame, text="보낼 금액 (TLK)",
+                 font=("Arial", 12)).pack(pady=5)
         self.send_amount_entry = tk.Entry(self.send_coin_frame)
         self.send_amount_entry.pack(pady=5)
 
@@ -1207,7 +1341,8 @@ class ZeroTalkApp:
         self.nft_frame = tk.Frame(self.master)
         self.nft_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.nft_frame, text="내 NFT 컬렉션", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.nft_frame, text="내 NFT 컬렉션",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
         if self.user_data[self.user_id].get('nfts'):
             for nft in self.user_data[self.user_id]['nfts']:
@@ -1215,7 +1350,8 @@ class ZeroTalkApp:
                                      font=("Arial", 12), wraplength=350)
                 nft_label.pack(pady=5)
         else:
-            tk.Label(self.nft_frame, text="보유한 NFT가 없습니다.", font=("Arial", 12)).pack(pady=10)
+            tk.Label(self.nft_frame, text="보유한 NFT가 없습니다.",
+                     font=("Arial", 12)).pack(pady=10)
 
         tk.Button(self.nft_frame, text="뒤로가기", font=("Arial", 12),
                   command=self.build_main_screen).pack(pady=20)
@@ -1225,7 +1361,8 @@ class ZeroTalkApp:
         self.market_frame = tk.Frame(self.master)
         self.market_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.market_frame, text="NFT 마켓", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.market_frame, text="NFT 마켓",
+                 font=("Arial", 20, "bold")).pack(pady=20)
 
         self.nft_market_list = [
             {"name": "제로 드래곤", "description": "희귀 드래곤 NFT", "price": 100},
@@ -1237,7 +1374,8 @@ class ZeroTalkApp:
             frame = tk.Frame(self.market_frame)
             frame.pack(pady=5)
 
-            tk.Label(frame, text=f"{nft['name']} - {nft['price']} TLK", font=("Arial", 12)).pack(side="left", padx=10)
+            tk.Label(frame, text=f"{nft['name']} - {nft['price']} TLK",
+                     font=("Arial", 12)).pack(side="left", padx=10)
             tk.Button(frame, text="구매", font=("Arial", 10),
                       command=lambda idx=idx: self.purchase_nft(idx)).pack(side="right", padx=10)
 
@@ -1252,7 +1390,8 @@ class ZeroTalkApp:
             messagebox.showerror("구매 실패", "잔액이 부족합니다.")
             return
 
-        confirm = messagebox.askyesno("구매 확인", f"{nft['name']}를 {price} TLK로 구매하시겠습니까?")
+        confirm = messagebox.askyesno(
+            "구매 확인", f"{nft['name']}를 {price} TLK로 구매하시겠습니까?")
         if confirm:
             self.wallet['balance'] -= price
             user_nfts = self.user_data[self.user_id].get('nfts', [])
@@ -1268,11 +1407,13 @@ class ZeroTalkApp:
         self.theme_frame = tk.Frame(self.master)
         self.theme_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.theme_frame, text="테마 변경", font=("Arial", 20, "bold")).pack(pady=20)
+        tk.Label(self.theme_frame, text="테마 변경", font=(
+            "Arial", 20, "bold")).pack(pady=20)
 
         themes = ["연핑크", "화이트", "다크", "블루", "퍼플"]
 
-        self.theme_var = tk.StringVar(value=self.user_data[self.user_id].get('theme', "연핑크"))
+        self.theme_var = tk.StringVar(
+            value=self.user_data[self.user_id].get('theme', "연핑크"))
 
         for theme in themes:
             tk.Radiobutton(self.theme_frame, text=theme, variable=self.theme_var, value=theme,
@@ -1507,10 +1648,12 @@ class ZeroTalkApp:
             tk.Label(frame, text=f"{nft['title']} - {nft['price']} TLK",
                      font=("Arial", 12), bg=self.bg_color, fg=self.text_color).pack(side="left", padx=5)
 
-            tk.Button(frame, text="구매", command=lambda n=nft: self.buy_nft(n)).pack(side="right", padx=5)
+            tk.Button(frame, text="구매", command=lambda n=nft: self.buy_nft(n)).pack(
+                side="right", padx=5)
 
     def buy_nft(self, nft):
-        confirm = messagebox.askyesno("구매 확인", f"{nft['title']}를 {nft['price']} TLK에 구매하시겠습니까?")
+        confirm = messagebox.askyesno(
+            "구매 확인", f"{nft['title']}를 {nft['price']} TLK에 구매하시겠습니까?")
         if confirm:
             if self.wallet['balance'] >= nft['price']:
                 self.wallet['balance'] -= nft['price']
@@ -1684,7 +1827,8 @@ class ZeroTalkApp:
         self.theme_win.title("테마 변경")
         self.theme_win.geometry("300x300")
 
-        tk.Label(self.theme_win, text="테마 색상 선택", font=("Arial", 14)).pack(pady=10)
+        tk.Label(self.theme_win, text="테마 색상 선택",
+                 font=("Arial", 14)).pack(pady=10)
 
         colors = [("화이트", "white", "black"),
                   ("블랙", "black", "white"),
@@ -1779,10 +1923,12 @@ class ZeroTalkApp:
         total_tlk_required = amount * 1.01
 
         if self.wallet['balance'] < total_tlk_required:
-            messagebox.showerror("오류", f"수수료 포함 최소 {total_tlk_required:.2f} TLK가 필요합니다.")
+            messagebox.showerror(
+                "오류", f"수수료 포함 최소 {total_tlk_required:.2f} TLK가 필요합니다.")
             return
 
-        confirm = messagebox.askyesno("확인", f"{recipient}님에게 {amount} TLK를 전송하시겠습니까?\n(수수료 1% 별도)")
+        confirm = messagebox.askyesno(
+            "확인", f"{recipient}님에게 {amount} TLK를 전송하시겠습니까?\n(수수료 1% 별도)")
         if confirm:
             self.wallet['balance'] -= total_tlk_required
             self.user_data[self.user_id]['wallet']['balance'] = self.wallet['balance']
@@ -1835,7 +1981,8 @@ class ZeroTalkApp:
             messagebox.showinfo("완료", f"{blocked_user}님을 차단 해제했습니다.")
 
     def withdraw_account(self):
-        confirm = messagebox.askyesno("회원 탈퇴 확인", "정말로 회원 탈퇴하시겠습니까?\n모든 데이터가 삭제됩니다.")
+        confirm = messagebox.askyesno(
+            "회원 탈퇴 확인", "정말로 회원 탈퇴하시겠습니까?\n모든 데이터가 삭제됩니다.")
         if confirm:
             del self.user_data[self.user_id]
             self.save_user_data()
@@ -1925,7 +2072,8 @@ class ZeroTalkApp:
             messagebox.showerror("오류", "잔액이 부족합니다.")
             return
 
-        confirm = messagebox.askyesno("구매 확인", f"NFT {nft_id}를 {price} TLK에 구매하시겠습니까?")
+        confirm = messagebox.askyesno(
+            "구매 확인", f"NFT {nft_id}를 {price} TLK에 구매하시겠습니까?")
         if confirm:
             self.wallet['balance'] -= price
             self.user_data[self.user_id]['wallet']['balance'] = self.wallet['balance']
@@ -2050,7 +2198,8 @@ class ZeroTalkApp:
         tk.Label(self.support_frame, text="문의사항이 있으면 아래 입력 후 제출하세요.",
                  font=("Arial", 14), bg=self.bg_color, fg=self.text_color).pack(pady=10)
 
-        self.support_text = tk.Text(self.support_frame, height=10, font=("Arial", 12))
+        self.support_text = tk.Text(
+            self.support_frame, height=10, font=("Arial", 12))
         self.support_text.pack(pady=10, padx=20, fill="both")
 
         tk.Button(self.support_frame, text="문의 제출", font=("Arial", 12),
@@ -2286,11 +2435,13 @@ class ZeroTalkApp:
             {"name": "제로톡 NFT #3", "price": 30},
         ]
 
-        self.nft_listbox = tk.Listbox(self.marketplace_frame, font=("Arial", 14))
+        self.nft_listbox = tk.Listbox(
+            self.marketplace_frame, font=("Arial", 14))
         self.nft_listbox.pack(pady=10, fill="both", expand=True)
 
         for item in self.nft_items:
-            self.nft_listbox.insert(tk.END, f"{item['name']} - {item['price']} TLK")
+            self.nft_listbox.insert(
+                tk.END, f"{item['name']} - {item['price']} TLK")
 
         tk.Button(self.marketplace_frame, text="NFT 구매하기", font=("Arial", 12),
                   command=self.purchase_nft).pack(pady=10)
@@ -2314,7 +2465,8 @@ class ZeroTalkApp:
 
         self.wallet['balance'] -= price
         self.user_data[self.user_id]['wallet']['balance'] = self.wallet['balance']
-        self.user_data[self.user_id].setdefault('owned_nfts', []).append(item['name'])
+        self.user_data[self.user_id].setdefault(
+            'owned_nfts', []).append(item['name'])
         self.save_user_data()
         messagebox.showinfo("구매 완료", f"{item['name']} NFT를 구매했습니다!")
 
@@ -2381,7 +2533,8 @@ class ZeroTalkApp:
         self.btc_balance_label.config(text="BTC: 0.056 BTC")
         self.sol_balance_label.config(text="SOL: 12.5 SOL")
         self.trx_balance_label.config(text="TRX: 3000 TRX")
-        self.tlk_balance_label.config(text=f"TLK 잔액: {self.wallet.get('balance', 0)}")
+        self.tlk_balance_label.config(
+            text=f"TLK 잔액: {self.wallet.get('balance', 0)}")
         messagebox.showinfo("새로고침 완료", "잔액이 갱신되었습니다.")
 
     def open_settings(self):
@@ -2487,7 +2640,8 @@ class ZeroTalkApp:
         tk.Label(self.language_frame, text="언어 설정", font=("Arial", 20, "bold"),
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
-        languages = ["한국어", "English", "日本語", "中文", "Español", "Français", "Deutsch", "العربية"]
+        languages = ["한국어", "English", "日本語", "中文",
+                     "Español", "Français", "Deutsch", "العربية"]
         for lang in languages:
             tk.Button(self.language_frame, text=lang, font=("Arial", 14),
                       command=lambda l=lang: self.set_language(l)).pack(pady=5)
@@ -2578,7 +2732,8 @@ class ZeroTalkApp:
         total_deduction = amount + fee
 
         if sender_wallet['balance'] < total_deduction:
-            messagebox.showerror("오류", f"수수료 포함하여 {total_deduction:.2f} TLK가 필요합니다.")
+            messagebox.showerror(
+                "오류", f"수수료 포함하여 {total_deduction:.2f} TLK가 필요합니다.")
             return
 
         # 송금 실행
@@ -2588,8 +2743,10 @@ class ZeroTalkApp:
         self.user_data[recipient]['wallet'] = recipient_wallet
         self.save_user_data()
 
-        messagebox.showinfo("송금 완료", f"{recipient}님에게 {amount} TLK 전송 완료! (수수료: {fee:.2f} TLK 차감)")
-        self.save_log("코인 전송", f"{self.user_id} → {recipient}: {amount} TLK (수수료 {fee:.2f})")
+        messagebox.showinfo(
+            "송금 완료", f"{recipient}님에게 {amount} TLK 전송 완료! (수수료: {fee:.2f} TLK 차감)")
+        self.save_log(
+            "코인 전송", f"{self.user_id} → {recipient}: {amount} TLK (수수료 {fee:.2f})")
         self.open_wallet_window()
 
     def show_settings_window(self):
@@ -2608,9 +2765,12 @@ class ZeroTalkApp:
         theme_frame = tk.Frame(self.settings_frame, bg=self.bg_color)
         theme_frame.pack(pady=10)
 
-        tk.Button(theme_frame, text="핑크 테마", command=lambda: self.change_theme('pink')).pack(side="left", padx=5)
-        tk.Button(theme_frame, text="화이트 테마", command=lambda: self.change_theme('white')).pack(side="left", padx=5)
-        tk.Button(theme_frame, text="블랙 테마", command=lambda: self.change_theme('black')).pack(side="left", padx=5)
+        tk.Button(theme_frame, text="핑크 테마", command=lambda: self.change_theme(
+            'pink')).pack(side="left", padx=5)
+        tk.Button(theme_frame, text="화이트 테마", command=lambda: self.change_theme(
+            'white')).pack(side="left", padx=5)
+        tk.Button(theme_frame, text="블랙 테마", command=lambda: self.change_theme(
+            'black')).pack(side="left", padx=5)
 
         # 언어 변경 (다국어 설정 준비)
         tk.Label(self.settings_frame, text="언어 선택", font=("Arial", 14),
@@ -2622,10 +2782,12 @@ class ZeroTalkApp:
         language_menu.pack()
 
         # 저장 버튼
-        tk.Button(self.settings_frame, text="저장", command=self.save_settings).pack(pady=20)
+        tk.Button(self.settings_frame, text="저장",
+                  command=self.save_settings).pack(pady=20)
 
         # 뒤로 가기
-        tk.Button(self.settings_frame, text="뒤로 가기", command=self.build_main_screen).pack(pady=10)
+        tk.Button(self.settings_frame, text="뒤로 가기",
+                  command=self.build_main_screen).pack(pady=10)
 
     def change_theme(self, theme):
         if theme == 'pink':
@@ -2657,7 +2819,8 @@ class ZeroTalkApp:
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
         total_users = len(self.user_data)
-        total_tlk = sum(u['wallet']['balance'] for u in self.user_data.values())
+        total_tlk = sum(u['wallet']['balance']
+                        for u in self.user_data.values())
         blocked_count = len(self.user_data[self.user_id]['blocked'])
 
         tk.Label(self.dashboard_frame, text=f"총 가입자 수: {total_users}명", font=("Arial", 14),
@@ -2667,7 +2830,8 @@ class ZeroTalkApp:
         tk.Label(self.dashboard_frame, text=f"차단한 유저 수: {blocked_count}명", font=("Arial", 14),
                  bg=self.bg_color, fg=self.text_color).pack(pady=5)
 
-        tk.Button(self.dashboard_frame, text="뒤로 가기", command=self.build_main_screen).pack(pady=20)
+        tk.Button(self.dashboard_frame, text="뒤로 가기",
+                  command=self.build_main_screen).pack(pady=20)
 
     def show_nft_marketplace(self):
         self.clear_screen()
@@ -2692,9 +2856,11 @@ class ZeroTalkApp:
             tk.Label(frame, text=f"{nft['name']} - {nft['price']} TLK",
                      font=("Arial", 14), bg=self.bg_color, fg=self.text_color).pack(side="left", padx=10)
 
-            tk.Button(frame, text="구매", command=lambda n=nft: self.purchase_nft(n)).pack(side="left", padx=5)
+            tk.Button(frame, text="구매", command=lambda n=nft: self.purchase_nft(n)).pack(
+                side="left", padx=5)
 
-        tk.Button(self.market_frame, text="뒤로 가기", command=self.build_main_screen).pack(pady=20)
+        tk.Button(self.market_frame, text="뒤로 가기",
+                  command=self.build_main_screen).pack(pady=20)
 
     def purchase_nft(self, nft):
         if self.wallet['balance'] < nft['price']:
@@ -2705,10 +2871,12 @@ class ZeroTalkApp:
         if confirm:
             self.wallet['balance'] -= nft['price']
             self.user_data[self.user_id]['wallet']['balance'] = self.wallet['balance']
-            self.user_data[self.user_id].setdefault('nft_inventory', []).append(nft['name'])
+            self.user_data[self.user_id].setdefault(
+                'nft_inventory', []).append(nft['name'])
             self.save_user_data()
             messagebox.showinfo("구매 완료", f"{nft['name']}을(를) 구매하였습니다!")
-            self.save_log("NFT 구매", f"NFT: {nft['name']} 가격: {nft['price']} TLK")
+            self.save_log(
+                "NFT 구매", f"NFT: {nft['name']} 가격: {nft['price']} TLK")
 
     def show_nft_inventory(self):
         self.clear_screen()
@@ -2729,7 +2897,8 @@ class ZeroTalkApp:
                 tk.Label(self.inventory_frame, text=nft, font=("Arial", 14),
                          bg=self.bg_color, fg=self.text_color).pack(pady=5)
 
-        tk.Button(self.inventory_frame, text="뒤로 가기", command=self.build_main_screen).pack(pady=20)
+        tk.Button(self.inventory_frame, text="뒤로 가기",
+                  command=self.build_main_screen).pack(pady=20)
 
     def refresh_main_screen(self):
         # 로그인 완료 후, 메인으로 돌아올 때 모든 설정 반영
@@ -2762,7 +2931,8 @@ class ZeroTalkApp:
                 tk.Label(self.wallet_tx_frame, text=info, font=("Arial", 10),
                          bg=self.bg_color, fg=self.text_color, anchor="w", justify="left").pack(padx=10, pady=2, fill="x")
 
-        tk.Button(self.wallet_tx_frame, text="뒤로 가기", command=self.open_wallet_window).pack(pady=20)
+        tk.Button(self.wallet_tx_frame, text="뒤로 가기",
+                  command=self.open_wallet_window).pack(pady=20)
 
     def save_wallet_transaction(self, tx_type, amount, currency, recipient):
         log_entry = {
@@ -2800,16 +2970,20 @@ class ZeroTalkApp:
         tk.Label(self.settings_frame, text="설정", font=("Arial", 20, "bold"),
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
-        theme_btn = tk.Button(self.settings_frame, text="테마 변경", command=self.change_theme)
+        theme_btn = tk.Button(self.settings_frame,
+                              text="테마 변경", command=self.change_theme)
         theme_btn.pack(pady=10)
 
-        lang_btn = tk.Button(self.settings_frame, text="언어 설정", command=self.change_language)
+        lang_btn = tk.Button(self.settings_frame,
+                             text="언어 설정", command=self.change_language)
         lang_btn.pack(pady=10)
 
-        tk.Button(self.settings_frame, text="뒤로 가기", command=self.build_main_screen).pack(pady=20)
+        tk.Button(self.settings_frame, text="뒤로 가기",
+                  command=self.build_main_screen).pack(pady=20)
 
     def change_theme(self):
-        options = [("화이트", "white", "black"), ("다크", "black", "white"), ("핑크", "#ffe4e1", "#4b0082")]
+        options = [("화이트", "white", "black"), ("다크", "black",
+                                               "white"), ("핑크", "#ffe4e1", "#4b0082")]
         self.clear_screen()
 
         self.theme_frame = tk.Frame(self.master, bg=self.bg_color)
@@ -2822,7 +2996,8 @@ class ZeroTalkApp:
             tk.Button(self.theme_frame, text=name,
                       command=lambda b=bg, f=fg: self.apply_theme(b, f)).pack(pady=5)
 
-        tk.Button(self.theme_frame, text="뒤로 가기", command=self.open_settings).pack(pady=20)
+        tk.Button(self.theme_frame, text="뒤로 가기",
+                  command=self.open_settings).pack(pady=20)
 
     def apply_theme(self, background, foreground):
         self.bg_color = background
@@ -2838,12 +3013,15 @@ class ZeroTalkApp:
         tk.Label(self.lang_frame, text="언어 설정", font=("Arial", 20, "bold"),
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
-        langs = [("한국어", "ko"), ("영어", "en"), ("일본어", "jp"), ("베트남어", "vn"), ("중국어", "cn")]
+        langs = [("한국어", "ko"), ("영어", "en"), ("일본어", "jp"),
+                 ("베트남어", "vn"), ("중국어", "cn")]
 
         for name, code in langs:
-            tk.Button(self.lang_frame, text=name, command=lambda c=code: self.switch_language(c)).pack(pady=5)
+            tk.Button(self.lang_frame, text=name,
+                      command=lambda c=code: self.switch_language(c)).pack(pady=5)
 
-        tk.Button(self.lang_frame, text="뒤로 가기", command=self.open_settings).pack(pady=20)
+        tk.Button(self.lang_frame, text="뒤로 가기",
+                  command=self.open_settings).pack(pady=20)
 
     def open_wallet_market(self):
         self.clear_screen()
@@ -2863,11 +3041,14 @@ class ZeroTalkApp:
 
         self.nft_listbox = tk.Listbox(self.market_frame, font=("Arial", 12))
         for item in nft_items:
-            self.nft_listbox.insert(tk.END, f"{item['name']} - {item['price']} TLK")
+            self.nft_listbox.insert(
+                tk.END, f"{item['name']} - {item['price']} TLK")
         self.nft_listbox.pack(pady=10, fill="both", expand=True)
 
-        tk.Button(self.market_frame, text="구매하기", command=lambda: self.purchase_nft(nft_items)).pack(pady=10)
-        tk.Button(self.market_frame, text="뒤로 가기", command=self.open_wallet_window).pack(pady=20)
+        tk.Button(self.market_frame, text="구매하기",
+                  command=lambda: self.purchase_nft(nft_items)).pack(pady=10)
+        tk.Button(self.market_frame, text="뒤로 가기",
+                  command=self.open_wallet_window).pack(pady=20)
 
     def purchase_nft(self, items):
         selection = self.nft_listbox.curselection()
@@ -2888,7 +3069,8 @@ class ZeroTalkApp:
         self.user_data[self.user_id]['wallet']['tlk'] = self.wallet['tlk']
         self.save_user_data()
 
-        self.save_wallet_transaction("NFT 구매", price, "TLK", selected_nft['name'])
+        self.save_wallet_transaction(
+            "NFT 구매", price, "TLK", selected_nft['name'])
         messagebox.showinfo("구매 완료", f"{selected_nft['name']} NFT를 구매했습니다!")
 
         self.open_wallet_window()
@@ -2940,7 +3122,8 @@ class ZeroTalkApp:
         else:
             logs = []
 
-        nft_purchases = [log for log in logs if log['user'] == self.user_id and log['type'] == 'NFT 구매']
+        nft_purchases = [log for log in logs if log['user']
+                         == self.user_id and log['type'] == 'NFT 구매']
 
         if not nft_purchases:
             tk.Label(self.nft_inventory_frame, text="보유한 NFT가 없습니다.", font=("Arial", 14),
@@ -2951,14 +3134,17 @@ class ZeroTalkApp:
                 tk.Label(self.nft_inventory_frame, text=info, font=("Arial", 10),
                          bg=self.bg_color, fg=self.text_color, anchor="w", justify="left").pack(padx=10, pady=2, fill="x")
 
-        tk.Button(self.nft_inventory_frame, text="뒤로 가기", command=self.open_wallet_window).pack(pady=20)
+        tk.Button(self.nft_inventory_frame, text="뒤로 가기",
+                  command=self.open_wallet_window).pack(pady=20)
 
     def nft_marketplace_buttons(self):
         btn_frame = tk.Frame(self.wallet_frame, bg=self.bg_color)
         btn_frame.pack(pady=10)
 
-        tk.Button(btn_frame, text="NFT 마켓", command=self.open_wallet_market).pack(side="left", padx=10)
-        tk.Button(btn_frame, text="내 NFT 보기", command=self.show_nft_inventory).pack(side="left", padx=10)
+        tk.Button(btn_frame, text="NFT 마켓", command=self.open_wallet_market).pack(
+            side="left", padx=10)
+        tk.Button(btn_frame, text="내 NFT 보기", command=self.show_nft_inventory).pack(
+            side="left", padx=10)
 
     def open_settings_window(self):
         self.clear_screen()
@@ -2970,19 +3156,24 @@ class ZeroTalkApp:
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
         # 언어 설정
-        tk.Button(self.settings_frame, text="다국어 설정", command=self.open_language_settings).pack(pady=10)
+        tk.Button(self.settings_frame, text="다국어 설정",
+                  command=self.open_language_settings).pack(pady=10)
 
         # 테마 변경
-        tk.Button(self.settings_frame, text="테마 변경", command=self.change_theme).pack(pady=10)
+        tk.Button(self.settings_frame, text="테마 변경",
+                  command=self.change_theme).pack(pady=10)
 
         # 비밀번호 변경
-        tk.Button(self.settings_frame, text="비밀번호 변경", command=self.change_password_window).pack(pady=10)
+        tk.Button(self.settings_frame, text="비밀번호 변경",
+                  command=self.change_password_window).pack(pady=10)
 
         # 로그아웃
-        tk.Button(self.settings_frame, text="로그아웃", command=self.logout).pack(pady=20)
+        tk.Button(self.settings_frame, text="로그아웃",
+                  command=self.logout).pack(pady=20)
 
     def change_theme(self):
-        theme_choice = messagebox.askquestion("테마 선택", "어두운 테마로 변경하시겠습니까? (예: 다크모드)")
+        theme_choice = messagebox.askquestion(
+            "테마 선택", "어두운 테마로 변경하시겠습니까? (예: 다크모드)")
 
         if theme_choice == "yes":
             self.bg_color = "#2b2b2b"
@@ -3002,14 +3193,18 @@ class ZeroTalkApp:
         tk.Label(self.lang_frame, text="언어 설정", font=("Arial", 20, "bold"),
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
-        languages = ["한국어", "English", "日本語", "中文", "Español", "Français", "Deutsch", "Tiếng Việt", "ไทย", "عربي"]
+        languages = ["한국어", "English", "日本語", "中文", "Español",
+                     "Français", "Deutsch", "Tiếng Việt", "ไทย", "عربي"]
         for lang in languages:
-            tk.Button(self.lang_frame, text=lang, command=lambda l=lang: self.set_language(l)).pack(pady=5)
+            tk.Button(self.lang_frame, text=lang,
+                      command=lambda l=lang: self.set_language(l)).pack(pady=5)
 
-        tk.Button(self.lang_frame, text="뒤로 가기", command=self.open_settings_window).pack(pady=20)
+        tk.Button(self.lang_frame, text="뒤로 가기",
+                  command=self.open_settings_window).pack(pady=20)
 
     def set_language(self, lang):
-        messagebox.showinfo("언어 설정 완료", f"선택된 언어: {lang}\n(향후 버전에서 언어별 UI 적용 예정)")
+        messagebox.showinfo(
+            "언어 설정 완료", f"선택된 언어: {lang}\n(향후 버전에서 언어별 UI 적용 예정)")
         self.open_settings_window()
 
     def change_password_window(self):
@@ -3021,16 +3216,20 @@ class ZeroTalkApp:
         tk.Label(self.password_frame, text="비밀번호 변경", font=("Arial", 20, "bold"),
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
-        tk.Label(self.password_frame, text="기존 비밀번호 입력", bg=self.bg_color, fg=self.text_color).pack(pady=5)
+        tk.Label(self.password_frame, text="기존 비밀번호 입력",
+                 bg=self.bg_color, fg=self.text_color).pack(pady=5)
         self.old_pw_entry = tk.Entry(self.password_frame, show="*")
         self.old_pw_entry.pack(pady=5)
 
-        tk.Label(self.password_frame, text="새 비밀번호 입력", bg=self.bg_color, fg=self.text_color).pack(pady=5)
+        tk.Label(self.password_frame, text="새 비밀번호 입력",
+                 bg=self.bg_color, fg=self.text_color).pack(pady=5)
         self.new_pw_entry = tk.Entry(self.password_frame, show="*")
         self.new_pw_entry.pack(pady=5)
 
-        tk.Button(self.password_frame, text="비밀번호 변경", command=self.change_password).pack(pady=10)
-        tk.Button(self.password_frame, text="뒤로 가기", command=self.open_settings_window).pack(pady=10)
+        tk.Button(self.password_frame, text="비밀번호 변경",
+                  command=self.change_password).pack(pady=10)
+        tk.Button(self.password_frame, text="뒤로 가기",
+                  command=self.open_settings_window).pack(pady=10)
 
     def change_password(self):
         old_pw = self.old_pw_entry.get()
@@ -3059,19 +3258,22 @@ class ZeroTalkApp:
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
         if self.wallet:
-            tk.Label(self.wallet_frame, text=f"지갑주소: {self.wallet['address']}", 
+            tk.Label(self.wallet_frame, text=f"지갑주소: {self.wallet['address']}",
                      bg=self.bg_color, fg=self.text_color, font=("Arial", 12)).pack(pady=5)
 
-            tk.Label(self.wallet_frame, text=f"잔액: {self.wallet['balance']} TLK", 
+            tk.Label(self.wallet_frame, text=f"잔액: {self.wallet['balance']} TLK",
                      bg=self.bg_color, fg=self.text_color, font=("Arial", 12)).pack(pady=5)
 
-            tk.Button(self.wallet_frame, text="코인 송금", command=self.send_coin_screen).pack(pady=10)
-            tk.Button(self.wallet_frame, text="거래 기록 보기", command=self.view_transaction_history).pack(pady=10)
+            tk.Button(self.wallet_frame, text="코인 송금",
+                      command=self.send_coin_screen).pack(pady=10)
+            tk.Button(self.wallet_frame, text="거래 기록 보기",
+                      command=self.view_transaction_history).pack(pady=10)
         else:
-            tk.Label(self.wallet_frame, text="지갑이 없습니다.", 
+            tk.Label(self.wallet_frame, text="지갑이 없습니다.",
                      bg=self.bg_color, fg=self.text_color, font=("Arial", 12)).pack(pady=10)
 
-        tk.Button(self.wallet_frame, text="뒤로 가기", command=self.show_main_screen).pack(pady=20)
+        tk.Button(self.wallet_frame, text="뒤로 가기",
+                  command=self.show_main_screen).pack(pady=20)
 
     def send_coin_screen(self):
         self.clear_screen()
@@ -3082,18 +3284,20 @@ class ZeroTalkApp:
         tk.Label(self.send_frame, text="코인 송금", font=("Arial", 20, "bold"),
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
-        tk.Label(self.send_frame, text="받는 사람 ID 입력", 
+        tk.Label(self.send_frame, text="받는 사람 ID 입력",
                  bg=self.bg_color, fg=self.text_color).pack(pady=5)
         self.recipient_entry = tk.Entry(self.send_frame)
         self.recipient_entry.pack(pady=5)
 
-        tk.Label(self.send_frame, text="보낼 수량 (TLK)", 
+        tk.Label(self.send_frame, text="보낼 수량 (TLK)",
                  bg=self.bg_color, fg=self.text_color).pack(pady=5)
         self.amount_entry = tk.Entry(self.send_frame)
         self.amount_entry.pack(pady=5)
 
-        tk.Button(self.send_frame, text="전송하기", command=self.send_coin).pack(pady=10)
-        tk.Button(self.send_frame, text="뒤로 가기", command=self.open_wallet_screen).pack(pady=10)
+        tk.Button(self.send_frame, text="전송하기",
+                  command=self.send_coin).pack(pady=10)
+        tk.Button(self.send_frame, text="뒤로 가기",
+                  command=self.open_wallet_screen).pack(pady=10)
 
     def send_coin(self):
         recipient = self.recipient_entry.get().strip()
@@ -3131,7 +3335,8 @@ class ZeroTalkApp:
 
         self.record_transaction(self.user_id, recipient, amount, fee)
 
-        messagebox.showinfo("성공", f"{recipient}님에게 {amount} TLK 전송 완료!\n(수수료: {fee:.2f} TLK)")
+        messagebox.showinfo(
+            "성공", f"{recipient}님에게 {amount} TLK 전송 완료!\n(수수료: {fee:.2f} TLK)")
         self.send_frame.destroy()
         self.open_wallet_screen()
 
@@ -3154,13 +3359,14 @@ class ZeroTalkApp:
             for tx in history:
                 tx_text = (f"{tx['time']} | {tx['sender']} → {tx['recipient']} | "
                            f"{tx['amount']} TLK (수수료 {tx['fee']} TLK)")
-                tk.Label(self.history_frame, text=tx_text, 
+                tk.Label(self.history_frame, text=tx_text,
                          bg=self.bg_color, fg=self.text_color, font=("Arial", 10)).pack(pady=2)
         else:
-            tk.Label(self.history_frame, text="기록 없음", 
+            tk.Label(self.history_frame, text="기록 없음",
                      bg=self.bg_color, fg=self.text_color).pack(pady=10)
 
-        tk.Button(self.history_frame, text="뒤로 가기", command=self.open_wallet_screen).pack(pady=20)
+        tk.Button(self.history_frame, text="뒤로 가기",
+                  command=self.open_wallet_screen).pack(pady=20)
 
     def record_transaction(self, sender, recipient, amount, fee):
         transaction = {
@@ -3189,10 +3395,14 @@ class ZeroTalkApp:
         tk.Label(self.marketplace_frame, text="ZeroTalk NFT 마켓", font=("Arial", 20, "bold"),
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
-        tk.Button(self.marketplace_frame, text="NFT 목록 보기", command=self.show_nft_list).pack(pady=10)
-        tk.Button(self.marketplace_frame, text="내 NFT 보기", command=self.show_my_nft).pack(pady=10)
-        tk.Button(self.marketplace_frame, text="NFT 업로드", command=self.upload_nft_screen).pack(pady=10)
-        tk.Button(self.marketplace_frame, text="뒤로 가기", command=self.show_main_screen).pack(pady=20)
+        tk.Button(self.marketplace_frame, text="NFT 목록 보기",
+                  command=self.show_nft_list).pack(pady=10)
+        tk.Button(self.marketplace_frame, text="내 NFT 보기",
+                  command=self.show_my_nft).pack(pady=10)
+        tk.Button(self.marketplace_frame, text="NFT 업로드",
+                  command=self.upload_nft_screen).pack(pady=10)
+        tk.Button(self.marketplace_frame, text="뒤로 가기",
+                  command=self.show_main_screen).pack(pady=20)
 
     def show_nft_list(self):
         self.clear_screen()
@@ -3204,9 +3414,10 @@ class ZeroTalkApp:
                  bg=self.bg_color, fg=self.text_color).pack(pady=10)
 
         if not os.path.exists('nft_market.json'):
-            tk.Label(self.nft_list_frame, text="등록된 NFT가 없습니다.", 
+            tk.Label(self.nft_list_frame, text="등록된 NFT가 없습니다.",
                      bg=self.bg_color, fg=self.text_color).pack(pady=10)
-            tk.Button(self.nft_list_frame, text="뒤로 가기", command=self.open_marketplace_screen).pack(pady=10)
+            tk.Button(self.nft_list_frame, text="뒤로 가기",
+                      command=self.open_marketplace_screen).pack(pady=10)
             return
 
         with open('nft_market.json', 'r', encoding='utf-8') as f:
@@ -3217,11 +3428,14 @@ class ZeroTalkApp:
             nft_frame.pack(pady=5, padx=10, fill="x")
 
             info = f"제목: {nft['title']} | 가격: {nft['price']} TLK"
-            tk.Label(nft_frame, text=info, bg=self.bg_color, fg=self.text_color, font=("Arial", 12)).pack(side="left")
+            tk.Label(nft_frame, text=info, bg=self.bg_color,
+                     fg=self.text_color, font=("Arial", 12)).pack(side="left")
 
-            tk.Button(nft_frame, text="구매", command=lambda n=nft: self.purchase_nft(n)).pack(side="right", padx=5)
+            tk.Button(nft_frame, text="구매", command=lambda n=nft: self.purchase_nft(
+                n)).pack(side="right", padx=5)
 
-        tk.Button(self.nft_list_frame, text="뒤로 가기", command=self.open_marketplace_screen).pack(pady=20)
+        tk.Button(self.nft_list_frame, text="뒤로 가기",
+                  command=self.open_marketplace_screen).pack(pady=20)
 
     def show_my_nft(self):
         self.clear_screen()
@@ -3235,15 +3449,16 @@ class ZeroTalkApp:
         user_nfts = self.user_data[self.user_id].get('nfts', [])
 
         if not user_nfts:
-            tk.Label(self.my_nft_frame, text="보유한 NFT가 없습니다.", 
+            tk.Label(self.my_nft_frame, text="보유한 NFT가 없습니다.",
                      bg=self.bg_color, fg=self.text_color).pack(pady=10)
         else:
             for nft in user_nfts:
                 nft_text = f"제목: {nft['title']} | 발행자: {nft['creator']}"
-                tk.Label(self.my_nft_frame, text=nft_text, 
+                tk.Label(self.my_nft_frame, text=nft_text,
                          bg=self.bg_color, fg=self.text_color, font=("Arial", 12)).pack(pady=5)
 
-        tk.Button(self.my_nft_frame, text="뒤로 가기", command=self.open_marketplace_screen).pack(pady=20)
+        tk.Button(self.my_nft_frame, text="뒤로 가기",
+                  command=self.open_marketplace_screen).pack(pady=20)
 
     def upload_nft_screen(self):
         self.clear_screen()
@@ -3254,18 +3469,20 @@ class ZeroTalkApp:
         tk.Label(self.upload_frame, text="NFT 업로드", font=("Arial", 18, "bold"),
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
-        tk.Label(self.upload_frame, text="NFT 제목 입력", 
+        tk.Label(self.upload_frame, text="NFT 제목 입력",
                  bg=self.bg_color, fg=self.text_color).pack(pady=5)
         self.nft_title_entry = tk.Entry(self.upload_frame)
         self.nft_title_entry.pack(pady=5)
 
-        tk.Label(self.upload_frame, text="판매 가격 (TLK)", 
+        tk.Label(self.upload_frame, text="판매 가격 (TLK)",
                  bg=self.bg_color, fg=self.text_color).pack(pady=5)
         self.nft_price_entry = tk.Entry(self.upload_frame)
         self.nft_price_entry.pack(pady=5)
 
-        tk.Button(self.upload_frame, text="NFT 등록", command=self.upload_nft).pack(pady=10)
-        tk.Button(self.upload_frame, text="뒤로 가기", command=self.open_marketplace_screen).pack(pady=10)
+        tk.Button(self.upload_frame, text="NFT 등록",
+                  command=self.upload_nft).pack(pady=10)
+        tk.Button(self.upload_frame, text="뒤로 가기",
+                  command=self.open_marketplace_screen).pack(pady=10)
 
     def upload_nft(self):
         title = self.nft_title_entry.get().strip()
@@ -3338,12 +3555,14 @@ class ZeroTalkApp:
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
         wallet_info = f"주소: {self.wallet.get('address', '없음')}\n" \
-                      f"잔액: {self.wallet.get('balance', 0):,.2f} TLK"
+            f"잔액: {self.wallet.get('balance', 0):,.2f} TLK"
         tk.Label(self.wallet_frame, text=wallet_info,
                  bg=self.bg_color, fg=self.text_color, font=("Arial", 12)).pack(pady=10)
 
-        tk.Button(self.wallet_frame, text="코인 보내기", command=self.open_send_coin_screen).pack(pady=10)
-        tk.Button(self.wallet_frame, text="뒤로 가기", command=self.show_main_screen).pack(pady=20)
+        tk.Button(self.wallet_frame, text="코인 보내기",
+                  command=self.open_send_coin_screen).pack(pady=10)
+        tk.Button(self.wallet_frame, text="뒤로 가기",
+                  command=self.show_main_screen).pack(pady=20)
 
     def open_send_coin_screen(self):
         self.clear_screen()
@@ -3354,23 +3573,25 @@ class ZeroTalkApp:
         tk.Label(self.send_coin_frame, text="ZeroTalk 코인 송금", font=("Arial", 20, "bold"),
                  bg=self.bg_color, fg=self.text_color).pack(pady=20)
 
-        tk.Label(self.send_coin_frame, text="받는사람 ID", 
+        tk.Label(self.send_coin_frame, text="받는사람 ID",
                  bg=self.bg_color, fg=self.text_color).pack(pady=5)
         self.recipient_entry = tk.Entry(self.send_coin_frame)
         self.recipient_entry.pack(pady=5)
 
-        tk.Label(self.send_coin_frame, text="보낼 금액 (TLK)", 
+        tk.Label(self.send_coin_frame, text="보낼 금액 (TLK)",
                  bg=self.bg_color, fg=self.text_color).pack(pady=5)
         self.amount_entry = tk.Entry(self.send_coin_frame)
         self.amount_entry.pack(pady=5)
 
-        tk.Label(self.send_coin_frame, text="지갑 비밀번호 입력", 
+        tk.Label(self.send_coin_frame, text="지갑 비밀번호 입력",
                  bg=self.bg_color, fg=self.text_color).pack(pady=5)
         self.wallet_pw_entry = tk.Entry(self.send_coin_frame, show="*")
         self.wallet_pw_entry.pack(pady=5)
 
-        tk.Button(self.send_coin_frame, text="전송하기", command=self.transfer_token).pack(pady=10)
-        tk.Button(self.send_coin_frame, text="뒤로 가기", command=self.show_wallet_screen).pack(pady=10)
+        tk.Button(self.send_coin_frame, text="전송하기",
+                  command=self.transfer_token).pack(pady=10)
+        tk.Button(self.send_coin_frame, text="뒤로 가기",
+                  command=self.show_wallet_screen).pack(pady=10)
 
     def transfer_token(self):
         recipient = self.recipient_entry.get().strip()
@@ -3402,7 +3623,8 @@ class ZeroTalkApp:
         total_amount = amount + fee
 
         if self.wallet['balance'] < total_amount:
-            messagebox.showerror("오류", f"잔액이 부족합니다. (총 필요 수량: {total_amount} TLK)")
+            messagebox.showerror(
+                "오류", f"잔액이 부족합니다. (총 필요 수량: {total_amount} TLK)")
             return
 
         self.wallet['balance'] -= total_amount
@@ -3410,7 +3632,8 @@ class ZeroTalkApp:
         self.user_data[recipient]['wallet']['balance'] += amount
         self.save_user_data()
 
-        messagebox.showinfo("성공", f"{recipient}님에게 {amount} TLK 송금 완료\n(수수료 {fee} TLK 차감됨)")
+        messagebox.showinfo(
+            "성공", f"{recipient}님에게 {amount} TLK 송금 완료\n(수수료 {fee} TLK 차감됨)")
         self.show_wallet_screen()
 
     def update_coin_prices(self):
@@ -3442,7 +3665,8 @@ class ZeroTalkApp:
             tk.Label(self.coin_prices_frame, text=info,
                      bg=self.bg_color, fg=self.text_color, font=("Arial", 14)).pack(pady=5)
 
-        tk.Button(self.coin_prices_frame, text="뒤로 가기", command=self.show_main_screen).pack(pady=20)
+        tk.Button(self.coin_prices_frame, text="뒤로 가기",
+                  command=self.show_main_screen).pack(pady=20)
 
     def init_coin_prices_auto_update(self):
         import threading
@@ -3461,16 +3685,20 @@ class ZeroTalkApp:
         self.nft_frame = tk.Frame(self.master)
         self.nft_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.nft_frame, text="NFT 마켓플레이스", font=("Arial", 16)).pack(pady=10)
+        tk.Label(self.nft_frame, text="NFT 마켓플레이스",
+                 font=("Arial", 16)).pack(pady=10)
 
         self.nft_listbox = tk.Listbox(self.nft_frame)
         self.nft_listbox.pack(pady=10, fill="both", expand=True)
 
         for nft in self.nft_items:
-            self.nft_listbox.insert(tk.END, f"{nft['name']} - {nft['price']} TLK")
+            self.nft_listbox.insert(
+                tk.END, f"{nft['name']} - {nft['price']} TLK")
 
-        tk.Button(self.nft_frame, text="구매하기", command=self.buy_nft).pack(pady=5)
-        tk.Button(self.nft_frame, text="뒤로가기", command=self.show_main_screen).pack(pady=10)
+        tk.Button(self.nft_frame, text="구매하기",
+                  command=self.buy_nft).pack(pady=5)
+        tk.Button(self.nft_frame, text="뒤로가기",
+                  command=self.show_main_screen).pack(pady=10)
 
     def buy_nft(self):
         selected = self.nft_listbox.curselection()
@@ -3497,15 +3725,18 @@ class ZeroTalkApp:
         self.market_frame = tk.Frame(self.master)
         self.market_frame.pack(fill="both", expand=True)
 
-        tk.Label(self.market_frame, text="코인 실시간 시세", font=("Arial", 16)).pack(pady=10)
+        tk.Label(self.market_frame, text="코인 실시간 시세",
+                 font=("Arial", 16)).pack(pady=10)
 
         self.price_listbox = tk.Listbox(self.market_frame)
         self.price_listbox.pack(pady=10, fill="both", expand=True)
 
         self.refresh_prices()
 
-        tk.Button(self.market_frame, text="새로고침", command=self.refresh_prices).pack(pady=5)
-        tk.Button(self.market_frame, text="뒤로가기", command=self.show_main_screen).pack(pady=10)
+        tk.Button(self.market_frame, text="새로고침",
+                  command=self.refresh_prices).pack(pady=5)
+        tk.Button(self.market_frame, text="뒤로가기",
+                  command=self.show_main_screen).pack(pady=10)
 
     def refresh_prices(self):
         # 샘플 데이터 (나중에 API 연결해서 실제 데이터 가져올 수 있습니다)
@@ -3522,6 +3753,7 @@ class ZeroTalkApp:
 
         for coin, price in prices.items():
             self.price_listbox.insert(tk.END, f"{coin}: {price}")
+
 
 if __name__ == "__main__":
     import tkinter as tk
