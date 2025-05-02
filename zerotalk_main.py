@@ -3737,7 +3737,6 @@ class ZeroTalkApp:
                   command=self.refresh_prices).pack(pady=5)
         tk.Button(self.market_frame, text="뒤로가기",
                   command=self.show_main_screen).pack(pady=10)
-
     def refresh_prices(self):
         # 샘플 데이터 (나중에 API 연결해서 실제 데이터 가져올 수 있습니다)
         prices = {
@@ -3753,7 +3752,6 @@ class ZeroTalkApp:
 
         for coin, price in prices.items():
             self.price_listbox.insert(tk.END, f"{coin}: {price}")
-
 
 if __name__ == "__main__":
     import tkinter as tk

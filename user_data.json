@@ -1,4 +1,9 @@
 {
-    "admin": "1234",
-    "guest": "0000"
+    "admin": {
+        "password": "1234",
+        "token_key": "abcdef" // (선택사항)
+    },
+    "guest": {
+        "password": "0000"
+    }
 }

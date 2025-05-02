@@ -1,11 +1,10 @@
 {
     "editor.formatOnSave": true,
-    "editor.detectIndentation": false,
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
     "python.formatting.provider": "autopep8",
-    "python.formatting.autopep8Path": "C:\\Users\\HighTech\\AppData\\Local\\Programs\\Python\\Python312\\Scripts\\autopep8.exe",
     "[python]": {
-        "editor.defaultFormatter": "ms-python.python"
+        "editor.defaultFormatter": "ms-python.python",
+        "editor.formatOnSave": true
     }
 }
